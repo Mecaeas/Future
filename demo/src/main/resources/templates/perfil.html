@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Perfil - MWK Eventos</title>
+    <link rel="stylesheet" href="/estilo.css">
+</head>
+<body class="pagina-perfil">
+    <header>
+        <a class="brand" href="/mural">MWK Eventos</a>
+        <a href="/mural">Voltar ao mural</a>
+    </header>
+    <main>
+        <section class="perfil-resumo" aria-labelledby="tituloPerfil">
+            <span class="profile-icon profile-icon-grande" aria-hidden="true"></span>
+            <div>
+                <p class="eyebrow">Configurações da conta</p>
+                <h1 id="tituloPerfil" th:text="${usuario.nome}">Nome</h1>
+                <p class="perfil-email" th:text="${usuario.email}">email@example.com</p>
+            </div>
+        </section>
+
+        <nav class="config-opcoes" aria-label="Configurações da conta">
+            <a class="config-opcao" href="/perfil/alterar-senha">
+                <span>
+                    <strong>Alterar senha</strong>
+                    <small>Atualize a senha da sua conta</small>
+                </span>
+                <span class="seta-opcao" aria-hidden="true">›</span>
+            </a>
+            <a class="config-opcao" href="/perfil/alterar-email">
+                <span>
+                    <strong>Alterar e-mail</strong>
+                    <small th:text="|E-mail atual: ${usuario.email}|">Atualize o e-mail da sua conta</small>
+                </span>
+                <span class="seta-opcao" aria-hidden="true">›</span>
+            </a>
+        </nav>
+
+        <section class="perfil-sessao">
+            <form action="/sair" method="post" class="perfil-sair">
+                <button class="button secondary" type="submit">Sair da conta</button>
+            </form>
+        </section>
+    </main>
+</body>
+</html>

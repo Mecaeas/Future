@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Novo evento - MWK Eventos</title>
+    <link rel="stylesheet" href="/estilo.css">
+</head>
+<body class="pagina-novo-evento">
+    <header>
+        <a class="brand" href="/mural">MWK Eventos</a>
+        <a href="/mural">Voltar ao mural</a>
+    </header>
+    <main>
+        <section class="formulario" aria-labelledby="titulo">
+            <p class="eyebrow">Pouso Alegre</p>
+            <h1 id="titulo">Criar novo evento</h1>
+            <p class="intro">Informe os dados para publicar no mural.</p>
+            <p class="erro" th:if="${erroEvento != null}" th:text="${erroEvento}" role="alert"></p>
+
+            <form action="/eventos" method="post" enctype="multipart/form-data">
+                <div class="campo">
+                    <label for="nome">Nome do evento</label>
+                    <input id="nome" name="nome" type="text" maxlength="160" required>
+                </div>
+
+                <div class="campo">
+                    <label for="endereco">Local</label>
+                    <input id="endereco" name="endereco" type="text" maxlength="200" required>
+                </div>
+
+                <div class="campo">
+                    <label for="categoria">Categoria</label>
+                    <select id="categoria" name="categoria" required>
+                        <option value="Música">Música</option>
+                        <option value="Esporte">Esporte</option>
+                        <option value="Cultura">Cultura</option>
+                        <option value="Tecnologia">Tecnologia</option>
+                        <option value="Geral">Geral</option>
+                    </select>
+                </div>
+
+                <div class="campo">
+                    <label for="imagens">Imagens do evento</label>
+                    <input class="arquivo-input" id="imagens" name="imagens" type="file" accept="image/jpeg,image/png,image/gif" multiple aria-describedby="ajudaImagens nomesImagens">
+                    <div class="arquivo-controles">
+                        <label class="arquivo-botao" for="imagens">Selecionar imagens</label>
+                        <span id="nomesImagens" class="arquivo-nomes" aria-live="polite">Nenhuma imagem selecionada</span>
+                    </div>
+                    <p id="ajudaImagens" class="ajuda">Envie até 5 imagens JPG, PNG ou GIF, com no máximo 5 MB cada.</p>
+                    <div id="previews" class="previews" aria-live="polite"></div>
+                </div>
+
+                <div class="data-hora">
+                    <div class="campo">
+                        <label for="data">Data</label>
+                        <input id="data" name="data" type="date" required>
+                    </div>
+                    <div class="campo">
+                        <label for="hora">Horário</label>
+                        <input id="hora" name="hora" type="time" required>
+                    </div>
+                </div>
+
+                <div class="campo">
+                    <label for="descricao">Descrição</label>
+                    <textarea id="descricao" name="descricao" maxlength="2000"></textarea>
+                </div>
+
+                <div class="acoes">
+                    <button class="button" type="submit">Publicar evento</button>
+                    <a class="button secondary" href="/mural">Cancelar</a>
+                </div>
+            </form>
+        </section>
+    </main>
+
+    <script>
+        const seletorImagens = document.getElementById("imagens");
+        const previews = document.getElementById("previews");
+        const nomesImagens = document.getElementById("nomesImagens");
+        let urlsPreviews = [];
+
+        seletorImagens.addEventListener("change", () => {
+            urlsPreviews.forEach(URL.revokeObjectURL);
+            urlsPreviews = [];
+            previews.replaceChildren();
+
+            const arquivos = Array.from(seletorImagens.files);
+            nomesImagens.textContent = arquivos.length
+                ? arquivos.map(arquivo => arquivo.name).join(", ")
+                : "Nenhuma imagem selecionada";
+
+            const arquivoInvalido = arquivos.find(arquivo =>
+                !["image/jpeg", "image/png", "image/gif"].includes(arquivo.type) || arquivo.size > 5 * 1024 * 1024
+            );
+
+            if (arquivos.length > 5) {
+                seletorImagens.setCustomValidity("Selecione no máximo 5 imagens.");
+            } else if (arquivoInvalido) {
+                seletorImagens.setCustomValidity("Use JPG, PNG ou GIF de até 5 MB cada.");
+            } else {
+                seletorImagens.setCustomValidity("");
+            }
+
+            arquivos.filter(arquivo => arquivo.type.startsWith("image/")).forEach(arquivo => {
+                const url = URL.createObjectURL(arquivo);
+                urlsPreviews.push(url);
+                const imagem = document.createElement("img");
+                imagem.src = url;
+                imagem.alt = arquivo.name;
+                previews.append(imagem);
+            });
+        });
+    </script>
+</body>
+</html>

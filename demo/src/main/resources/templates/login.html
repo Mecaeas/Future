@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Login - MWK Eventos</title>
+    <link rel="stylesheet" href="/estilo.css">
+</head>
+<body class="pagina-login">
+    <div class="caixa-login">
+        <div class="cabecalho-login">
+            <span class="logo-login">MWK</span>
+            <h1>Entrar</h1>
+        </div>
+
+        <p class="sucesso" th:if="${mensagemLogin != null}" th:text="${mensagemLogin}" role="status"></p>
+        <p class="erro" th:if="${erro != null}" th:text="${erro}"></p>
+
+        <form action="/fazer-login" method="post" class="form-login">
+            <label for="emailLogin">E-mail</label>
+            <input id="emailLogin" type="email" name="email" placeholder="seuemail@exemplo.com" required>
+
+            <label for="senhaLogin">Senha</label>
+            <div class="campo-senha">
+                <input class="campo-senha-input" type="password" id="senhaLogin" name="senha" placeholder="Sua senha" required>
+                <button type="button" class="alternar-senha" aria-label="Mostrar senha" aria-pressed="false" onclick="mostrarSenha('senhaLogin', this)">Mostrar</button>
+            </div>
+
+            <button type="submit" class="btn submit-login">Entrar</button>
+        </form>
+
+        <div class="rodape-login">
+            <a class="recuperar-link" href="/recuperar-senha">Esqueci minha senha</a>
+            <p>Ainda não tem conta? <a href="/registo">Cadastre-se aqui</a></p>
+        </div>
+    </div>
+
+    <script>
+        function mostrarSenha(id, controle) {
+            const campo = document.getElementById(id);
+            if (!campo || !controle) return;
+
+            const exibirSenha = campo.type === "password";
+            campo.type = exibirSenha ? "text" : "password";
+            controle.textContent = exibirSenha ? "Ocultar" : "Mostrar";
+            controle.setAttribute("aria-label", exibirSenha ? "Ocultar senha" : "Mostrar senha");
+            controle.setAttribute("aria-pressed", String(exibirSenha));
+        }
+    </script>
+</body>
+</html>

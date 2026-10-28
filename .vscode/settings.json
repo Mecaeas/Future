@@ -1,0 +1,10 @@
+{
+    "java.compile.nullAnalysis.mode": "automatic",
+    "java.configuration.runtimes": [
+        {
+            "name": "JavaSE-25",
+            "path": "C:\\Users\\keyla\\AppData\\Local\\jdks\\jdk-25.0.2",
+            "default": true
+        }
+    ]
+}

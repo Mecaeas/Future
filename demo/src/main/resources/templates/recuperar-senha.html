@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Recuperar senha - MWK Eventos</title>
+    <link rel="stylesheet" href="/estilo.css">
+</head>
+<body class="pagina-recuperacao">
+    <main>
+        <section class="caixa-recuperacao" aria-labelledby="tituloRecuperacao">
+            <a class="brand" href="/">MWK Eventos</a>
+            <h1 id="tituloRecuperacao">Recuperar senha</h1>
+            <p class="intro">Informe o e-mail e o documento cadastrados para definir uma nova senha.</p>
+            <p class="erro" th:if="${erroRecuperacao != null}" th:text="${erroRecuperacao}" role="alert"></p>
+            <form action="/recuperar-senha" method="post">
+                <div class="campo">
+                    <label for="emailRecuperacao">E-mail</label>
+                    <input id="emailRecuperacao" name="email" type="email" autocomplete="email" th:value="${email}" required>
+                </div>
+                <div class="campo">
+                    <label for="documentoRecuperacao">Data de nascimento (dd/mm/aaaa) ou CNPJ</label>
+                    <input id="documentoRecuperacao" name="documento" type="text" placeholder="dd/mm/aaaa ou CNPJ" autocomplete="off" required>
+                </div>
+                <div class="campo">
+                    <label for="novaSenha">Nova senha</label>
+                    <input id="novaSenha" name="novaSenha" type="password" autocomplete="new-password" minlength="8" required>
+                </div>
+                <div class="campo">
+                    <label for="confirmarSenha">Confirmar nova senha</label>
+                    <input id="confirmarSenha" name="confirmarSenha" type="password" autocomplete="new-password" minlength="8" required>
+                </div>
+                <button class="button" type="submit">Redefinir senha</button>
+            </form>
+            <p class="voltar-login"><a href="/login">Voltar ao login</a></p>
+        </section>
+    </main>
+</body>
+</html>

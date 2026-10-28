@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>MWK Eventos</title>
+    <link rel="stylesheet" href="/estilo.css">
+</head>
+<body class="pagina-mural">
+    <header>
+        <a class="brand" href="/mural">MWK Eventos</a>
+        <nav aria-label="Navegação principal">
+            <span class="welcome" th:if="${usuarioNome != null}" th:text="|Olá, ${usuarioNome}|">Olá</span>
+            <a class="profile-link" th:if="${usuarioNome != null}" href="/perfil" aria-label="Perfil e configurações">
+                <span class="profile-icon" aria-hidden="true"></span>
+                <span>Perfil</span>
+            </a>
+            <a class="button" th:if="${usuarioNome != null}" href="/eventos/novo">Criar novo evento</a>
+            <a class="login-link" th:unless="${usuarioNome != null}" href="/login">Entrar para criar evento</a>
+        </nav>
+    </header>
+    <main>
+        <section class="heading">
+            <div>
+                <p class="eyebrow">Pouso Alegre</p>
+                <h1>Mural de Eventos</h1>
+                <p class="subheading">Descubra o que acontece na cidade.</p>
+            </div>
+            <div class="mural-acoes">
+                <div class="filtros-eventos">
+                    <label class="visually-hidden" for="buscaEvento">Buscar por evento ou local</label>
+                    <input id="buscaEvento" type="search" placeholder="Buscar evento ou local">
+                    <label class="visually-hidden" for="categoriaEvento">Filtrar por categoria</label>
+                    <select id="categoriaEvento">
+                        <option value="">Todas as categorias</option>
+                        <option value="musica">Música</option>
+                        <option value="esporte">Esporte</option>
+                        <option value="cultura">Cultura</option>
+                        <option value="tecnologia">Tecnologia</option>
+                        <option value="geral">Geral</option>
+                    </select>
+                </div>
+                <a class="button" th:if="${usuarioNome != null}" href="/eventos/novo">Criar novo evento</a>
+            </div>
+        </section>
+        <section class="empty" th:if="${#lists.isEmpty(eventos)}">
+             <h2>Nenhum evento por enquanto</h2>
+             <p>Os próximos eventos publicados aparecerão aqui.</p>
+        </section>
+        <section class="event-list" th:unless="${#lists.isEmpty(eventos)}" aria-label="Eventos publicados">
+   <article class="event" th:each="evento : ${eventos}" th:attr="data-categoria=${#strings.toLowerCase(evento.categoria)}">
+         <span class="category" th:text="${evento.categoria == 'Musica' ? 'Música' : evento.categoria}">Categoria</span>
+         <time class="date" th:text="${evento.dataHoraFormatada}">Data e hora</time>
+         <h2 th:text="${evento.nome}">Nome do evento</h2>
+         <p class="location" th:text="${evento.endereco}">Local</p>
+         <p th:if="${evento.descricao != null and !#strings.isEmpty(evento.descricao)}" th:text="${evento.descricao}">Descrição</p>
+
+         <!-- Exibição de imagens do evento -->
+         <div class="event-images" th:if="${!#lists.isEmpty(evento.imagens)}">
+             <img th:each="imagem, status : ${evento.imagens}" th:src="${imagem}" th:alt="|Imagem ${status.count} do evento ${evento.nome}|" loading="lazy">
+     </div>
+     <!-- Ação de Participar / Cancelar Presença -->
+     <div class="event-actions" style="grid-column: 1 / -1; margin-top: 12px;">
+         <p class="confirmados" th:text="${evento.resumoParticipantes}">0 pessoas confirmadas</p>
+         <form th:if="${session.usuarioLogado != null}" th:action="@{/participar/{id}(id=${evento.id})}" method="post">
+              <button type="submit" class="button" 
+                     th:classappend="${evento.isParticipante(session.usuarioLogado)} ? ' secondary' : ''"
+                     th:text="${evento.isParticipante(session.usuarioLogado)} ? 'Cancelar presença' : 'Garantir vaga'">
+                 Garantir vaga
+             </button>
+        </form>
+        <a th:unless="${session.usuarioLogado != null}" href="/login" class="login-link">
+            Faça login para participar deste evento
+        </a>
+    </div>
+</article>    
+        </section>
+        <p id="semResultados" class="sem-resultados" hidden>Nenhum evento corresponde à busca.</p>
+    </main>
+    <script>
+        const buscaEvento = document.getElementById("buscaEvento");
+        const categoriaEvento = document.getElementById("categoriaEvento");
+        const cardsEvento = Array.from(document.querySelectorAll(".event"));
+        const mensagemSemResultados = document.getElementById("semResultados");
+        const normalizarTexto = texto => texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("pt-BR");
+
+        function filtrarEventos() {
+            const termo = normalizarTexto(buscaEvento.value.trim());
+            const categoria = categoriaEvento.value;
+            let encontrados = 0;
+
+            cardsEvento.forEach(card => {
+                const correspondeTexto = normalizarTexto(card.textContent).includes(termo);
+                const correspondeCategoria = !categoria || normalizarTexto(card.dataset.categoria) === normalizarTexto(categoria);
+                card.hidden = !correspondeTexto || !correspondeCategoria;
+                if (!card.hidden) encontrados += 1;
+            });
+
+            mensagemSemResultados.hidden = cardsEvento.length === 0 || encontrados > 0;
+        }
+
+        buscaEvento.addEventListener("input", filtrarEventos);
+        categoriaEvento.addEventListener("change", filtrarEventos);
+    </script>
+</body>
+</html>

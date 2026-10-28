@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Criar conta - MWK Eventos</title>
+    <link rel="stylesheet" href="/estilo.css">
+</head>
+<body class="pagina-registo">
+    <header>
+        <a class="brand" href="/">MWK Eventos</a>
+        <a href="/login">Já tem conta? Entrar</a>
+    </header>
+    <main>
+        <section class="formulario" aria-labelledby="titulo">
+            <h1 id="titulo">Criar conta</h1>
+            <p class="intro">Informe seus dados para criar uma conta e participar dos eventos.</p>
+            <p class="erro" th:if="${erroRegisto != null}" th:text="${erroRegisto}" role="alert"></p>
+
+            <form action="/fazer-registo" method="post">
+                <div class="campo">
+                    <label for="nome">Nome ou razão social</label>
+                    <input id="nome" type="text" name="nome" autocomplete="name" required>
+                </div>
+
+                <div class="campo">
+                    <label for="email">E-mail</label>
+                    <input id="email" type="email" name="email" autocomplete="email" required>
+                </div>
+
+                <div class="campo">
+                    <label for="senhaCadastro">Senha</label>
+                    <div class="senha">
+                        <input id="senhaCadastro" type="password" name="senha" autocomplete="new-password" minlength="8" required>
+                        <button type="button" class="alternar-senha" aria-label="Mostrar senha" aria-pressed="false" onclick="mostrarSenha('senhaCadastro', this)">Mostrar</button>
+                    </div>
+                </div>
+
+                <div class="campo">
+                    <label for="tipo">Tipo de conta</label>
+                    <select id="tipo" name="tipo" required>
+                        <option value="Cidadao">Cidadão</option>
+                        <option value="PJ">Empresa / Organizador</option>
+                    </select>
+                </div>
+
+                <div class="campo">
+                    <label id="documentoLabel" for="documento">Data de nascimento</label>
+                    <input id="documento" type="date" name="documento" autocomplete="bday" required>
+                </div>
+
+                <button type="submit" class="submit">Criar conta</button>
+            </form>
+
+            <p class="rodape">Já tem conta? <a href="/login">Faça login</a></p>
+        </section>
+    </main>
+
+    <script>
+        function mostrarSenha(id, controle) {
+            const campo = document.getElementById(id);
+            if (!campo || !controle) return;
+
+            const exibirSenha = campo.type === "password";
+            campo.type = exibirSenha ? "text" : "password";
+            controle.textContent = exibirSenha ? "Ocultar" : "Mostrar";
+            controle.setAttribute("aria-label", exibirSenha ? "Ocultar senha" : "Mostrar senha");
+            controle.setAttribute("aria-pressed", String(exibirSenha));
+        }
+
+        const tipoConta = document.getElementById("tipo");
+        const campoDocumento = document.getElementById("documento");
+        const rotuloDocumento = document.getElementById("documentoLabel");
+
+        function atualizarDocumentoLabel() {
+            const cidadao = tipoConta.value === "Cidadao";
+            rotuloDocumento.textContent = cidadao ? "Data de nascimento" : "CNPJ";
+            campoDocumento.type = cidadao ? "date" : "text";
+            campoDocumento.placeholder = cidadao ? "" : "00.000.000/0000-00";
+            campoDocumento.pattern = cidadao ? "" : "[0-9./-]{11,18}";
+            campoDocumento.inputMode = cidadao ? "" : "text";
+            campoDocumento.autocomplete = cidadao ? "bday" : "off";
+            if (cidadao) {
+                const hoje = new Date();
+                campoDocumento.max = [
+                    hoje.getFullYear(),
+                    String(hoje.getMonth() + 1).padStart(2, "0"),
+                    String(hoje.getDate()).padStart(2, "0")
+                ].join("-");
+            } else {
+                campoDocumento.removeAttribute("max");
+            }
+        }
+
+        tipoConta.addEventListener("change", atualizarDocumentoLabel);
+        atualizarDocumentoLabel();
+    </script>
+</body>
+</html>
