@@ -499,9 +499,49 @@ a { color: inherit; }
 .pagina-mural .location { font-size: 14px; }
 .pagina-mural .event-images { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
 .pagina-mural .event-images img { width: clamp(120px, 20vw, 210px); aspect-ratio: 4 / 3; object-fit: cover; border: 1px solid var(--line); border-radius: 12px; }
+.pagina-mural .event-toolbar { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+.pagina-mural .event-action { min-height: 38px; padding: 0 12px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid #e0d0d2; border-radius: 999px; background: #fff7f7; color: var(--accent-dark); font: 700 13px "Segoe UI", sans-serif; cursor: pointer; transition: all 0.2s ease; }
+.pagina-mural a.event-action { text-decoration: none; }
+.pagina-mural .event-action:hover { border-color: var(--accent); transform: translateY(-1px); }
+.pagina-mural .event-action.active { background: #f8ebed; border-color: var(--accent); color: var(--accent-dark); }
+.pagina-mural .event-action.success { background: #edf9ef; border-color: #1f6f42; color: #1f6f42; }
+.pagina-mural .event-action.error { background: #fff0f1; border-color: #a51f2b; color: #a51f2b; }
+.pagina-mural .event-highlight { border-color: #dba5a8; box-shadow: 0 0 0 3px rgba(165, 31, 43, 0.08); }
+.pagina-mural .erro { color: var(--accent-dark); font-weight: 600; }
+.pagina-mural .mensagem-sucesso { color: #1f6f42; font-weight: 600; }
 .pagina-mural .button { min-height: 46px; padding: 0 20px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--accent); border-radius: 12px; color: #fff; background: var(--accent); font-weight: 700; text-decoration: none; }
 .pagina-mural .button.secondary { color: var(--accent-dark); background: transparent; }
 .pagina-mural .button:hover { color: #fff; background: var(--accent-dark); }
+.pagina-mural .vagas-evento, .pagina-mural .vagas-esgotadas { grid-column: 1 / -1; }
+.pagina-mural .alerta-vagas {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 6px;
+    padding: 8px 12px;
+    border: 1px solid #f6c768;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #fff8e7 0%, #fff1cf 100%);
+    color: #7a5300;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    box-shadow: 0 8px 18px rgba(122, 83, 0, 0.08);
+}
+.pagina-mural .alerta-vagas::before {
+    content: "⚠";
+    font-size: 14px;
+}
+.pagina-mural .alerta-lotado {
+    border-color: #dca0a8;
+    background: linear-gradient(90deg, #fff1f2 0%, #ffe0e4 100%);
+    color: #8d1f2d;
+    box-shadow: 0 8px 18px rgba(141, 31, 45, 0.08);
+}
+.pagina-mural .alerta-lotado::before {
+    content: "✕";
+}
+.pagina-mural .vagas-esgotadas { color: var(--accent-dark); font-weight: 700; }
 .pagina-mural .profile-link { display: inline-flex; align-items: center; gap: 7px; color: var(--accent-dark); }
 .profile-icon { position: relative; width: 19px; height: 19px; display: inline-block; flex: 0 0 19px; }
 .profile-icon::before { position: absolute; top: 1px; left: 6px; width: 7px; height: 7px; border: 1.7px solid currentColor; border-radius: 50%; content: ""; }
@@ -566,6 +606,8 @@ a { color: inherit; }
 .pagina-novo-evento .erro { margin: 0 0 18px; color: #a51f2b; font-size: 14px; font-weight: 600; }
 .pagina-novo-evento .previews { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; margin-top: 10px; }
 .pagina-novo-evento .previews img { width: 100%; max-width: 180px; aspect-ratio: 4 / 3; object-fit: cover; border: 1px solid var(--line); border-radius: 3px; }
+.pagina-novo-evento .imagens-atuais { display: flex; flex-wrap: wrap; gap: 10px; }
+.pagina-novo-evento .imagens-atuais img { width: min(180px, 42%); aspect-ratio: 4 / 3; object-fit: cover; border: 1px solid var(--line); border-radius: 3px; }
 .pagina-novo-evento .acoes { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
 .pagina-novo-evento .button { min-height: 44px; padding: 0 17px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--accent); border-radius: 3px; color: #fff; background: var(--accent); font: 700 14px "Segoe UI", sans-serif; text-decoration: none; cursor: pointer; }
 .pagina-novo-evento .button:hover { background: var(--accent-dark); }

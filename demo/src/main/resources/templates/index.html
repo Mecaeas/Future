@@ -40,6 +40,7 @@
                         <option value="geral">Geral</option>
                     </select>
                 </div>
+                <button type="button" id="toggleFavoritos" class="button secondary" aria-pressed="false">Mostrar favoritos</button>
                 <a class="button" th:if="${usuarioNome != null}" href="/eventos/novo">Criar novo evento</a>
             </div>
         </section>
@@ -47,8 +48,10 @@
              <h2>Nenhum evento por enquanto</h2>
              <p>Os próximos eventos publicados aparecerão aqui.</p>
         </section>
+        <p class="erro" th:if="${erroMural != null}" th:text="${erroMural}" role="alert"></p>
+        <p class="mensagem-sucesso" th:if="${mensagemMural != null}" th:text="${mensagemMural}" role="status"></p>
         <section class="event-list" th:unless="${#lists.isEmpty(eventos)}" aria-label="Eventos publicados">
-   <article class="event" th:each="evento : ${eventos}" th:attr="data-categoria=${#strings.toLowerCase(evento.categoria)}">
+   <article class="event" th:each="evento : ${eventos}" th:attr="data-categoria=${#strings.toLowerCase(evento.categoria)}, data-event-id=${evento.id}">
          <span class="category" th:text="${evento.categoria == 'Musica' ? 'Música' : evento.categoria}">Categoria</span>
          <time class="date" th:text="${evento.dataHoraFormatada}">Data e hora</time>
          <h2 th:text="${evento.nome}">Nome do evento</h2>
@@ -58,18 +61,37 @@
          <!-- Exibição de imagens do evento -->
          <div class="event-images" th:if="${!#lists.isEmpty(evento.imagens)}">
              <img th:each="imagem, status : ${evento.imagens}" th:src="${imagem}" th:alt="|Imagem ${status.count} do evento ${evento.nome}|" loading="lazy">
-     </div>
-     <!-- Ação de Participar / Cancelar Presença -->
-     <div class="event-actions" style="grid-column: 1 / -1; margin-top: 12px;">
+         </div>
+
+         <div class="event-toolbar" aria-label="Ações do evento">
+             <a class="event-action editar-evento" th:if="${evento.foiCriadoPor(session.usuarioEmail)}"
+                th:href="@{/eventos/{id}/editar(id=${evento.id})}">Editar evento</a>
+             <button type="button" class="event-action favorite-btn" th:data-event-id="${evento.id}" aria-pressed="false">
+                 <span aria-hidden="true">♡</span>
+                 <span class="event-action-label">Favoritar</span>
+             </button>
+             <button type="button" class="event-action share-btn" th:data-event-id="${evento.id}" th:data-event-name="${evento.nome}" th:data-share-url="${'/mural?evento=' + evento.id}">
+                 <span aria-hidden="true">↗</span>
+                 <span class="event-action-label">Compartilhar</span>
+             </button>
+         </div>
+
+         <div class="event-actions" style="grid-column: 1 / -1; margin-top: 12px;">
          <p class="confirmados" th:text="${evento.resumoParticipantes}">0 pessoas confirmadas</p>
-         <form th:if="${session.usuarioLogado != null}" th:action="@{/participar/{id}(id=${evento.id})}" method="post">
+            <p class="vagas-evento alerta-vagas" th:classappend="${evento.isLotacaoEsgotada()} ? ' alerta-lotado' : ''"
+                th:if="${evento.limiteParticipantes != null and evento.deveMostrarVagasRestantes()}" th:text="${evento.mensagemVagasRestantes}">Restam 12 vagas.</p>
+         <p class="vagas-evento alerta-vagas alerta-lotado" th:if="${evento.limiteParticipantes != null and evento.isLotacaoEsgotada()}" th:text="${evento.mensagemVagasRestantes}">Evento lotado.</p>
+            <p class="vagas-evento" th:if="${evento.limiteParticipantes != null and !evento.deveMostrarVagasRestantes()}"
+            th:text="|${evento.quantidadeParticipantes} de ${evento.limiteParticipantes} vagas preenchidas|">0 de 0 vagas preenchidas</p>
+         <form th:if="${session.usuarioLogado != null and (evento.temVagasDisponiveis or evento.isParticipante(session.usuarioLogado))}"
+               th:action="@{/participar/{id}(id=${evento.id})}" method="post">
               <button type="submit" class="button" 
                      th:classappend="${evento.isParticipante(session.usuarioLogado)} ? ' secondary' : ''"
                      th:text="${evento.isParticipante(session.usuarioLogado)} ? 'Cancelar presença' : 'Garantir vaga'">
                  Garantir vaga
              </button>
         </form>
-        <a th:unless="${session.usuarioLogado != null}" href="/login" class="login-link">
+        <a th:if="${session.usuarioLogado == null and evento.temVagasDisponiveis}" href="/login" class="login-link">
             Faça login para participar deste evento
         </a>
     </div>
@@ -80,27 +102,135 @@
     <script>
         const buscaEvento = document.getElementById("buscaEvento");
         const categoriaEvento = document.getElementById("categoriaEvento");
+        const toggleFavoritos = document.getElementById("toggleFavoritos");
         const cardsEvento = Array.from(document.querySelectorAll(".event"));
         const mensagemSemResultados = document.getElementById("semResultados");
         const normalizarTexto = texto => texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("pt-BR");
 
+        const FAVORITOS_CHAVE = "mwk-eventos-favoritos";
+        const FILTRO_FAVORITOS_CHAVE = "mwk-eventos-filtro-favoritos";
+        const favoritos = () => JSON.parse(localStorage.getItem(FAVORITOS_CHAVE) || "[]");
+
+        function atualizarBotaoFiltroFavoritos() {
+            const mostrandoFavoritos = localStorage.getItem(FILTRO_FAVORITOS_CHAVE) === "true";
+            toggleFavoritos.classList.toggle("active", mostrandoFavoritos);
+            toggleFavoritos.setAttribute("aria-pressed", String(mostrandoFavoritos));
+            toggleFavoritos.textContent = mostrandoFavoritos ? "Mostrando favoritos" : "Mostrar favoritos";
+        }
+
         function filtrarEventos() {
             const termo = normalizarTexto(buscaEvento.value.trim());
             const categoria = categoriaEvento.value;
+            const mostrandoFavoritos = localStorage.getItem(FILTRO_FAVORITOS_CHAVE) === "true";
+            const idsFavoritos = favoritos();
             let encontrados = 0;
 
             cardsEvento.forEach(card => {
                 const correspondeTexto = normalizarTexto(card.textContent).includes(termo);
                 const correspondeCategoria = !categoria || normalizarTexto(card.dataset.categoria) === normalizarTexto(categoria);
-                card.hidden = !correspondeTexto || !correspondeCategoria;
+                const correspondeFavoritos = !mostrandoFavoritos || idsFavoritos.includes(card.dataset.eventId);
+                card.hidden = !correspondeTexto || !correspondeCategoria || !correspondeFavoritos;
                 if (!card.hidden) encontrados += 1;
             });
+
+            if (mostrandoFavoritos && idsFavoritos.length === 0) {
+                mensagemSemResultados.textContent = "Você ainda não marcou nenhum evento como favorito.";
+            } else {
+                mensagemSemResultados.textContent = "Nenhum evento corresponde à busca.";
+            }
 
             mensagemSemResultados.hidden = cardsEvento.length === 0 || encontrados > 0;
         }
 
         buscaEvento.addEventListener("input", filtrarEventos);
         categoriaEvento.addEventListener("change", filtrarEventos);
+        toggleFavoritos.addEventListener("click", () => {
+            const mostrandoFavoritos = localStorage.getItem(FILTRO_FAVORITOS_CHAVE) === "true";
+            localStorage.setItem(FILTRO_FAVORITOS_CHAVE, String(!mostrandoFavoritos));
+            atualizarBotaoFiltroFavoritos();
+            filtrarEventos();
+        });
+
+        function atualizarBotaoFavorito(botao, favorito) {
+            const icone = botao.querySelector("span[aria-hidden='true']");
+            const texto = botao.querySelector(".event-action-label");
+            botao.classList.toggle("active", favorito);
+            botao.setAttribute("aria-pressed", String(favorito));
+            if (icone) {
+                icone.textContent = favorito ? "♥" : "♡";
+            }
+            if (texto) {
+                texto.textContent = favorito ? "Favoritado" : "Favoritar";
+            }
+        }
+
+        document.querySelectorAll(".favorite-btn").forEach(botao => {
+            const eventoId = botao.dataset.eventId;
+            const favorito = favoritos().includes(eventoId);
+            atualizarBotaoFavorito(botao, favorito);
+
+            botao.addEventListener("click", () => {
+                const listaAtual = favoritos();
+                const indice = listaAtual.indexOf(eventoId);
+                if (indice >= 0) {
+                    listaAtual.splice(indice, 1);
+                } else {
+                    listaAtual.push(eventoId);
+                }
+                localStorage.setItem(FAVORITOS_CHAVE, JSON.stringify(listaAtual));
+                atualizarBotaoFavorito(botao, listaAtual.includes(eventoId));
+                filtrarEventos();
+            });
+        });
+
+        atualizarBotaoFiltroFavoritos();
+        filtrarEventos();
+
+        document.querySelectorAll(".share-btn").forEach(botao => {
+            botao.addEventListener("click", async () => {
+                const urlEvento = new URL(botao.dataset.shareUrl, window.location.origin).toString();
+                const nomeEvento = botao.dataset.eventName || "Evento";
+
+                try {
+                    if (navigator.share) {
+                        await navigator.share({
+                            title: nomeEvento,
+                            text: `Confira este evento: ${nomeEvento}`,
+                            url: urlEvento
+                        });
+                        return;
+                    }
+
+                    await navigator.clipboard.writeText(urlEvento);
+                    const label = botao.querySelector(".event-action-label");
+                    const textoOriginal = label.textContent;
+                    label.textContent = "Link copiado";
+                    botao.classList.add("success");
+                    setTimeout(() => {
+                        label.textContent = textoOriginal;
+                        botao.classList.remove("success");
+                    }, 1200);
+                } catch (erro) {
+                    const label = botao.querySelector(".event-action-label");
+                    const textoOriginal = label.textContent;
+                    label.textContent = "Não foi possível compartilhar";
+                    botao.classList.add("error");
+                    setTimeout(() => {
+                        label.textContent = textoOriginal;
+                        botao.classList.remove("error");
+                    }, 1800);
+                }
+            });
+        });
+
+        const eventoSelecionado = new URLSearchParams(window.location.search).get("evento");
+        if (eventoSelecionado) {
+            const cardSelecionado = document.querySelector(`.event[data-event-id="${eventoSelecionado}"]`);
+            if (cardSelecionado) {
+                cardSelecionado.classList.add("event-highlight");
+                cardSelecionado.scrollIntoView({ behavior: "smooth", block: "center" });
+            }
+        }
     </script>
 </body>
 </html>

@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -21,6 +22,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
 import java.util.List;
+import java.util.Optional;
 
 @Controller
 public class EventoController {
@@ -28,7 +30,7 @@ public class EventoController {
     private final EventoRepository eventos;
     private final ImagemEventoService imagens;
 
-    public UsuarioRepository usuarios;
+    private final UsuarioRepository usuarios;
 
     public EventoController(EventoRepository eventos, ImagemEventoService imagens, UsuarioRepository usuarios) {
         this.eventos = eventos;
@@ -65,12 +67,18 @@ public class EventoController {
             @RequestParam("data") String data,
             @RequestParam("hora") String hora,
             @RequestParam(value = "descricao", required = false) String descricao,
+            @RequestParam(value = "limiteParticipantes", required = false) Integer limiteParticipantes,
             @RequestParam(value = "imagens", required = false) MultipartFile[] arquivos,
             HttpSession session,
             RedirectAttributes redirectAttributes) {
         Object email = session.getAttribute("usuarioEmail");
         if (email == null) {
             return "redirect:/login";
+        }
+
+        if (limiteParticipantes != null && limiteParticipantes < 1) {
+            redirectAttributes.addFlashAttribute("erroEvento", "O limite de participantes deve ser maior que zero.");
+            return "redirect:/eventos/novo";
         }
 
         LocalDateTime dataHora;
@@ -89,43 +97,127 @@ public class EventoController {
             return "redirect:/eventos/novo";
         }
 
-        Evento evento = new Evento(nome, endereco, categoria, dataHora, descricao, email.toString());
+        Evento evento = new Evento(nome, endereco, categoria, dataHora, descricao, email.toString(), limiteParticipantes);
         caminhos.forEach(evento::adicionarImagem);
         eventos.save(evento);
         return "redirect:/mural";
     }
 
-   @PostMapping("/participar/{id}")
-    public String participarEvento(@PathVariable Long id, HttpSession session) {
-    // 1. Obtém o usuário armazenado na sessão
-    Usuario usuarioSessao = (Usuario) session.getAttribute("usuarioLogado");
-    if (usuarioSessao == null) {
-        return "redirect:/login";
+    @GetMapping("/eventos/{id}/editar")
+    public String paginaEdicaoEvento(@PathVariable Long id, HttpSession session, Model model,
+                                     RedirectAttributes mensagens) {
+        Object email = session.getAttribute("usuarioEmail");
+        if (email == null) {
+            return "redirect:/login";
+        }
+
+        Optional<Evento> eventoEncontrado = eventos.findById(id);
+        if (eventoEncontrado.isEmpty() || !eventoEncontrado.get().foiCriadoPor(email.toString())) {
+            mensagens.addFlashAttribute("erroMural", "Você só pode editar os eventos que criou.");
+            return "redirect:/mural";
+        }
+
+        model.addAttribute("evento", eventoEncontrado.get());
+        return "editar-evento";
     }
 
-    // 2. Busca o usuário gerenciado pelo JPA na base de dados
-    Usuario usuario = usuarios.findById(usuarioSessao.getId()).orElse(null);
-    if (usuario == null) {
-        session.invalidate();
-        return "redirect:/login";
+    @PostMapping("/eventos/{id}/editar")
+    public String atualizarEvento(
+            @PathVariable Long id,
+            @RequestParam("nome") String nome,
+            @RequestParam("endereco") String endereco,
+            @RequestParam("categoria") String categoria,
+            @RequestParam("data") String data,
+            @RequestParam("hora") String hora,
+            @RequestParam(value = "descricao", required = false) String descricao,
+            @RequestParam(value = "limiteParticipantes", required = false) Integer limiteParticipantes,
+            @RequestParam(value = "imagens", required = false) MultipartFile[] arquivos,
+            HttpSession session,
+            RedirectAttributes mensagens) {
+        Object email = session.getAttribute("usuarioEmail");
+        if (email == null) {
+            return "redirect:/login";
+        }
+
+        Optional<Evento> eventoEncontrado = eventos.findById(id);
+        if (eventoEncontrado.isEmpty() || !eventoEncontrado.get().foiCriadoPor(email.toString())) {
+            mensagens.addFlashAttribute("erroMural", "Você só pode editar os eventos que criou.");
+            return "redirect:/mural";
+        }
+
+        if (limiteParticipantes != null && limiteParticipantes < 1) {
+            mensagens.addFlashAttribute("erroEvento", "O limite de participantes deve ser maior que zero.");
+            return "redirect:/eventos/" + id + "/editar";
+        }
+
+        Evento evento = eventoEncontrado.get();
+        if (limiteParticipantes != null && limiteParticipantes < evento.getQuantidadeParticipantes()) {
+            mensagens.addFlashAttribute("erroEvento",
+                    "O limite não pode ser menor que as " + evento.getQuantidadeParticipantes() + " pessoas já confirmadas.");
+            return "redirect:/eventos/" + id + "/editar";
+        }
+
+        LocalDateTime dataHora;
+        try {
+            dataHora = LocalDate.parse(data.trim()).atTime(LocalTime.parse(hora.trim()));
+        } catch (DateTimeParseException erro) {
+            mensagens.addFlashAttribute("erroEvento", "Selecione uma data e um horário válidos.");
+            return "redirect:/eventos/" + id + "/editar";
+        }
+
+        try {
+            List<String> novosCaminhos = imagens.salvar(arquivos);
+            if (!novosCaminhos.isEmpty()) {
+                evento.substituirImagens(novosCaminhos);
+            }
+        } catch (IllegalArgumentException | IOException erro) {
+            mensagens.addFlashAttribute("erroEvento", erro.getMessage());
+            return "redirect:/eventos/" + id + "/editar";
+        }
+
+        evento.atualizar(nome, endereco, categoria, dataHora, descricao, limiteParticipantes);
+        eventos.save(evento);
+        mensagens.addFlashAttribute("mensagemMural", "Evento atualizado com sucesso.");
+        return "redirect:/mural";
     }
 
-    // 3. Procura o evento e atualiza a lista de participantes
-    Evento evento = eventos.findById(id).orElse(null);
-    if (evento != null) {
-        boolean jaParticipa = evento.getParticipantes().stream()
-                .anyMatch(u -> u.getId().equals(usuario.getId()));
+    @PostMapping("/participar/{id}")
+    @Transactional
+    public String participarEvento(@PathVariable Long id, HttpSession session, RedirectAttributes mensagens) {
+        Usuario usuarioSessao = (Usuario) session.getAttribute("usuarioLogado");
+        if (usuarioSessao == null) {
+            return "redirect:/login";
+        }
 
+        Usuario usuario = usuarios.findById(usuarioSessao.getId()).orElse(null);
+        if (usuario == null) {
+            session.invalidate();
+            return "redirect:/login";
+        }
+
+        Evento evento = eventos.findByIdForUpdate(id).orElse(null);
+        if (evento == null) {
+            return "redirect:/mural";
+        }
+
+        boolean jaParticipa = evento.isParticipante(usuario);
         if (jaParticipa) {
             evento.getParticipantes().removeIf(u -> u.getId().equals(usuario.getId()));
-        } else {
-            evento.getParticipantes().add(usuario);
+            mensagens.addFlashAttribute("mensagemMural", "Sua presença foi cancelada.");
+            eventos.save(evento);
+            return "redirect:/mural";
         }
-        eventos.save(evento);
-    }
 
-    return "redirect:/mural";
-}
+        if (evento.isLotacaoEsgotada()) {
+            mensagens.addFlashAttribute("erroMural", "Este evento está lotado.");
+            return "redirect:/mural";
+        }
+
+        evento.getParticipantes().add(usuario);
+        mensagens.addFlashAttribute("mensagemMural", "Sua presença foi confirmada.");
+        eventos.save(evento);
+        return "redirect:/mural";
+    }
 
     @GetMapping("/uploads/eventos/{nomeArquivo:.+}")
     public ResponseEntity<Resource> imagem(@PathVariable String nomeArquivo) throws IOException {
