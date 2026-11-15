@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Validar ingresso - MWK Eventos</title>
+    <link rel="stylesheet" href="/estilo.css">
+</head>
+<body class="pagina-validar-ingresso">
+    <main>
+        <section class="validacao-card">
+            <p class="validacao-selo">Ingresso válido</p>
+            <h1 th:text="${ingresso.evento.nome}">Nome do evento</h1>
+            <p class="validacao-data" th:text="${ingresso.evento.dataHoraFormatada}">Data e hora do evento</p>
+            <dl>
+                <div>
+                    <dt>Participante</dt>
+                    <dd th:text="${ingresso.usuario.nome}">Nome do participante</dd>
+                </div>
+                <div>
+                    <dt>Local</dt>
+                    <dd th:text="${ingresso.evento.endereco}">Endereço</dd>
+                </div>
+            </dl>
+            <p class="validacao-aviso">Este ingresso foi confirmado pela MWK Eventos.</p>
+        </section>
+    </main>
+</body>
+</html>

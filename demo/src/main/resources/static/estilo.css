@@ -472,7 +472,7 @@ a { color: inherit; }
 }
 
 .pagina-mural nav a:hover { color: var(--accent); }
-.pagina-mural main { width: min(980px, 88vw); margin: 54px auto; }
+.pagina-mural main { width: min(1180px, 92vw); margin: 54px auto; }
 .pagina-mural .eyebrow { margin: 0 0 14px; color: var(--accent); font-size: 13px; font-weight: 700; text-transform: uppercase; }
 .pagina-mural h1 { margin: 0; font-family: Georgia, serif; font-size: 38px; }
 .pagina-mural .subheading { margin: 9px 0 0; color: var(--muted); }
@@ -489,30 +489,67 @@ a { color: inherit; }
 .pagina-mural .empty { padding: 54px 12px; color: var(--muted); text-align: center; }
 .pagina-mural .empty h2 { margin: 0 0 8px; color: var(--ink); font-family: Georgia, serif; font-size: 24px; }
 .pagina-mural .empty p { margin: 0; line-height: 1.6; }
-.pagina-mural .event-list { margin-top: 20px; }
-.pagina-mural .event { padding: 22px 18px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 24px; border: 1px solid #f1e1e3; border-radius: 20px; background: #fff; box-shadow: 0 10px 26px rgba(20, 15, 15, 0.03); margin-bottom: 18px; }
+.pagina-mural .event-list { margin-top: 24px; display: grid; gap: 22px; }
+.pagina-mural .event { min-height: 0; display: grid; grid-template-columns: minmax(210px, 27%) minmax(0, 1fr); overflow: hidden; border: 1px solid #f1e1e3; border-radius: 16px; background: #fff; box-shadow: 0 8px 20px rgba(20, 15, 15, 0.045); }
 .pagina-mural .event[hidden] { display: none; }
+.pagina-mural .event-media { min-height: 250px; grid-column: 1; background: linear-gradient(145deg, #f8e9e9, #eee5e0); }
+.pagina-mural .event-media > img { width: 100%; height: 100%; min-height: 250px; display: block; object-fit: cover; }
+.pagina-mural .event-no-image { min-height: 250px; height: 100%; display: grid; place-items: center; color: #a77c7c; font: 700 20px Georgia, serif; }
+.pagina-mural .event-content { min-width: 0; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; }
+.pagina-mural .event-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
 .pagina-mural .category { color: var(--accent); font-size: 12px; font-weight: 700; text-transform: uppercase; }
-.pagina-mural .date { color: var(--muted); font-size: 14px; }
-.pagina-mural .event h2 { grid-column: 1; margin: 0; font-family: Georgia, serif; font-size: 23px; }
-.pagina-mural .event p { grid-column: 1; margin: 0; color: var(--muted); line-height: 1.5; }
-.pagina-mural .location { font-size: 14px; }
-.pagina-mural .event-images { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
-.pagina-mural .event-images img { width: clamp(120px, 20vw, 210px); aspect-ratio: 4 / 3; object-fit: cover; border: 1px solid var(--line); border-radius: 12px; }
-.pagina-mural .event-toolbar { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+.pagina-mural .date { color: var(--accent-dark); font-size: 13px; font-weight: 700; }
+.pagina-mural .event h2 { margin: 0; color: var(--ink); font-family: Georgia, serif; font-size: clamp(23px, 2.5vw, 30px); line-height: 1.12; }
+.pagina-mural .event p { margin: 0; color: var(--muted); line-height: 1.55; }
+.pagina-mural .event .location { color: var(--ink); font-size: 15px; font-weight: 600; }
+.pagina-mural .event-logistics { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; }
+.pagina-mural .event-logistics .location { max-width: 100%; }
+.pagina-mural .event-logistics .date { padding: 5px 9px; border: 1px solid #ead3d6; border-radius: 7px; background: #fff4f5; }
+.pagina-mural .event .event-description { display: -webkit-box; overflow: hidden; font-size: 14px; line-height: 1.45; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
+.pagina-mural .event-thumbnails { display: flex; flex-wrap: wrap; gap: 8px; }
+.pagina-mural .event-thumbnails img { width: 64px; height: 52px; border: 1px solid var(--line); border-radius: 8px; object-fit: cover; }
+.pagina-mural .event-status { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+.pagina-mural .event-status p { padding: 6px 9px; border-radius: 7px; font-size: 12px; line-height: 1.35; }
+.pagina-mural .event-status .ingressos-disponiveis { border: 1px solid #cce4d2; color: #1d5e36; background: #eff8f1; font-weight: 700; }
+.pagina-mural .event-status .ingressos-disponiveis strong { font-size: 15px; }
+.pagina-mural .event-status .limite-pessoas { border: 1px solid #d9e0eb; color: #53647d; background: #f3f6fa; font-weight: 600; }
+.pagina-mural .event-status .limite-pessoas strong { font-weight: 800; }
+.pagina-mural .event-toolbar { display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 6px; }
 .pagina-mural .event-action { min-height: 38px; padding: 0 12px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid #e0d0d2; border-radius: 999px; background: #fff7f7; color: var(--accent-dark); font: 700 13px "Segoe UI", sans-serif; cursor: pointer; transition: all 0.2s ease; }
 .pagina-mural a.event-action { text-decoration: none; }
+.pagina-mural .event-toolbar form { margin: 0; }
+.pagina-mural .event-action.excluir-evento { color: #8d1f2d; background: #fff1f2; }
 .pagina-mural .event-action:hover { border-color: var(--accent); transform: translateY(-1px); }
 .pagina-mural .event-action.active { background: #f8ebed; border-color: var(--accent); color: var(--accent-dark); }
 .pagina-mural .event-action.success { background: #edf9ef; border-color: #1f6f42; color: #1f6f42; }
 .pagina-mural .event-action.error { background: #fff0f1; border-color: #a51f2b; color: #a51f2b; }
 .pagina-mural .event-highlight { border-color: #dba5a8; box-shadow: 0 0 0 3px rgba(165, 31, 43, 0.08); }
+.pagina-mural .event-footer { margin-top: auto; padding-top: 5px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.pagina-mural .event-actions { display: flex; align-items: center; }
+.pagina-mural .event-actions form { margin: 0; }
+.pagina-mural .event-actions .button { min-height: 42px; padding: 0 18px; border-radius: 999px; cursor: pointer; }
+.pagina-mural .event-footer .detalhes-button { min-height: 40px; flex: 0 0 auto; padding: 0 16px; border-radius: 9px; font-size: 14px; }
+.pagina-mural .event-actions .button.secondary { color: var(--accent-dark); background: #fff; }
+.pagina-mural .event-actions .button:hover { color: #fff; background: var(--accent-dark); }
+.pagina-novo-evento .opcao-checkbox { display: flex; align-items: center; gap: 10px; }
+.pagina-novo-evento .opcao-checkbox input { width: 18px; height: 18px; margin: 0; accent-color: var(--accent); }
+.pagina-novo-evento #valorIngresso:disabled { filter: grayscale(1); color: #777; background: #e7e7e7; cursor: not-allowed; }
 .pagina-mural .erro { color: var(--accent-dark); font-weight: 600; }
 .pagina-mural .mensagem-sucesso { color: #1f6f42; font-weight: 600; }
 .pagina-mural .button { min-height: 46px; padding: 0 20px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--accent); border-radius: 12px; color: #fff; background: var(--accent); font-weight: 700; text-decoration: none; }
 .pagina-mural .button.secondary { color: var(--accent-dark); background: transparent; }
 .pagina-mural .button:hover { color: #fff; background: var(--accent-dark); }
 .pagina-mural .vagas-evento, .pagina-mural .vagas-esgotadas { grid-column: 1 / -1; }
+.pagina-mural .confirmacao-modal { width: min(480px, calc(100vw - 32px)); padding: 0; border: 0; border-radius: 18px; color: var(--ink); background: #fff; box-shadow: 0 24px 80px rgba(30, 10, 10, 0.28); }
+.pagina-mural .confirmacao-modal::backdrop { background: rgba(31, 23, 23, 0.58); backdrop-filter: blur(3px); }
+.pagina-mural .confirmacao-conteudo { padding: 32px; display: flex; align-items: center; flex-direction: column; text-align: center; }
+.pagina-mural .confirmacao-icone { width: 52px; height: 52px; display: grid; place-items: center; border-radius: 50%; color: #fff; background: #267044; font-size: 30px; font-weight: 800; }
+.pagina-mural .confirmacao-conteudo h2 { margin: 18px 0 8px; color: var(--ink); font: 700 25px Georgia, serif; }
+.pagina-mural .confirmacao-conteudo p { margin: 6px 0; line-height: 1.55; }
+.pagina-mural .confirmacao-conteudo .confirmacao-ajuda { margin: 4px 0 18px; color: var(--muted); font-size: 14px; }
+.pagina-mural .confirmacao-conteudo .button { min-height: 44px; border-radius: 9px; }
+.pagina-mural .fechar-modal { margin-top: 14px; padding: 8px 12px; border: 0; color: var(--muted); background: transparent; font: inherit; cursor: pointer; }
+.pagina-mural .fechar-modal:hover { color: var(--accent-dark); text-decoration: underline; }
 .pagina-mural .alerta-vagas {
     display: inline-flex;
     align-items: center;
@@ -569,6 +606,14 @@ a { color: inherit; }
 .pagina-perfil .config-opcao strong, .pagina-perfil .config-opcao small { display: block; }
 .pagina-perfil .config-opcao strong { color: var(--ink); font-size: 15px; }
 .pagina-perfil .config-opcao small { margin-top: 4px; color: var(--muted); font-size: 13px; }
+.pagina-perfil .perfil-cpf { margin: 22px 0; padding: 22px; border: 1px solid var(--line); background: #fff; }
+.pagina-perfil .perfil-cpf h2 { margin: 0 0 8px; font: 700 21px Georgia, serif; }
+.pagina-perfil .perfil-cpf > p { color: var(--muted); line-height: 1.5; }
+.pagina-perfil .perfil-cpf form { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 10px; }
+.pagina-perfil .perfil-cpf form label { grid-column: 1 / -1; }
+.pagina-perfil .perfil-cpf form input { min-width: 0; }
+.pagina-perfil .perfil-cpf .button { min-height: 44px; padding: 0 15px; border-radius: 6px; }
+.pagina-perfil .mensagem-sucesso { color: #267044; font-weight: 600; }
 .pagina-perfil .seta-opcao { color: var(--accent); font-size: 26px; line-height: 1; }
 .pagina-perfil .campo { display: grid; gap: 7px; margin-bottom: 17px; }
 .pagina-perfil label { font-size: 14px; font-weight: 600; }
@@ -595,42 +640,261 @@ a { color: inherit; }
 .pagina-novo-evento input, .pagina-novo-evento select, .pagina-novo-evento textarea { width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid #bcb4ae; border-radius: 3px; color: var(--ink); background: #fff; font: inherit; }
 .pagina-novo-evento textarea { min-height: 110px; resize: vertical; }
 .pagina-novo-evento input:focus, .pagina-novo-evento select:focus, .pagina-novo-evento textarea:focus { border-color: var(--accent); outline: 2px solid #a51f2b33; }
-.pagina-novo-evento .data-hora { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 16px; }
+.pagina-novo-evento .data-hora { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1.15fr) minmax(110px, 0.68fr); align-items: start; gap: 12px; }
+.pagina-novo-evento .campo-horario input { padding-right: 7px; padding-left: 7px; }
 .pagina-novo-evento .arquivo-input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .pagina-novo-evento .arquivo-controles { min-width: 0; display: flex; align-items: center; gap: 12px; }
 .pagina-novo-evento .arquivo-botao { min-height: 42px; padding: 0 14px; display: inline-flex; flex: 0 0 auto; align-items: center; border: 1px solid var(--accent); border-radius: 3px; color: var(--accent-dark); background: #fff; cursor: pointer; }
 .pagina-novo-evento .arquivo-botao:hover { background: #f7eeee; }
-.pagina-novo-evento #imagens:focus-visible + .arquivo-controles .arquivo-botao { outline: 2px solid var(--accent); outline-offset: 2px; }
+.pagina-novo-evento #imagens:focus-visible + .arquivo-controles .arquivo-botao,
+.pagina-novo-evento #capa:focus-visible + .arquivo-controles .arquivo-botao { outline: 2px solid var(--accent); outline-offset: 2px; }
 .pagina-novo-evento .arquivo-nomes { min-width: 0; overflow: hidden; color: var(--muted); font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
 .pagina-novo-evento .ajuda { margin: -3px 0 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
 .pagina-novo-evento .erro { margin: 0 0 18px; color: #a51f2b; font-size: 14px; font-weight: 600; }
-.pagina-novo-evento .previews { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; margin-top: 10px; }
-.pagina-novo-evento .previews img { width: 100%; max-width: 180px; aspect-ratio: 4 / 3; object-fit: cover; border: 1px solid var(--line); border-radius: 3px; }
+.pagina-novo-evento .previews { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 180px)); gap: 10px; margin-top: 10px; }
 .pagina-novo-evento .imagens-atuais { display: flex; flex-wrap: wrap; gap: 10px; }
-.pagina-novo-evento .imagens-atuais img { width: min(180px, 42%); aspect-ratio: 4 / 3; object-fit: cover; border: 1px solid var(--line); border-radius: 3px; }
+.pagina-novo-evento .imagem-atual-item, .pagina-novo-evento .imagem-preview-item { position: relative; width: min(180px, 42%); }
+.pagina-novo-evento .imagem-preview-item { width: 100%; }
+.pagina-novo-evento .imagem-atual-item img, .pagina-novo-evento .imagem-preview-item img { width: 100%; aspect-ratio: 4 / 3; display: block; object-fit: cover; border: 1px solid var(--line); border-radius: 3px; }
+.pagina-novo-evento .imagem-remover { position: absolute; top: 6px; right: 6px; width: 30px; height: 30px; padding: 0; display: grid; place-items: center; border: 1px solid rgba(255,255,255,.8); border-radius: 50%; color: #fff; background: rgba(138, 24, 34, .92); font: 16px/1 "Segoe UI", sans-serif; cursor: pointer; box-shadow: 0 1px 5px rgba(0,0,0,.3); }
+.pagina-novo-evento .imagem-remover:hover, .pagina-novo-evento .imagem-remover:focus-visible { background: #78131c; outline: 2px solid #fff; outline-offset: 1px; }
+.pagina-novo-evento .imagem-exclusao-aviso { display: none; margin-top: 5px; color: var(--accent-dark); font-size: 12px; font-weight: 700; }
+.pagina-novo-evento .imagem-atual-item.marcada-para-exclusao img { opacity: .38; }
+.pagina-novo-evento .imagem-atual-item.marcada-para-exclusao .imagem-exclusao-aviso { display: block; }
+.pagina-novo-evento .imagem-atual-item.marcada-para-exclusao .imagem-remover { background: #365b3d; }
 .pagina-novo-evento .acoes { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
 .pagina-novo-evento .button { min-height: 44px; padding: 0 17px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--accent); border-radius: 3px; color: #fff; background: var(--accent); font: 700 14px "Segoe UI", sans-serif; text-decoration: none; cursor: pointer; }
 .pagina-novo-evento .button:hover { background: var(--accent-dark); }
 .pagina-novo-evento .button.secondary { color: var(--accent-dark); background: transparent; }
 
 @media (max-width: 520px) {
-    .pagina-mural header { padding: 0 6vw; }
-    .pagina-mural nav { gap: 14px; }
-    .pagina-mural main { margin: 34px auto; }
-    .pagina-mural .heading { align-items: start; flex-direction: column; }
+    .pagina-inicio .topo-inicio { padding-top: 18px; padding-bottom: 18px; }
+    .pagina-inicio .nav-inicio { width: 100%; justify-content: center; flex-wrap: wrap; }
+    .pagina-inicio .hero { padding-top: 30px; padding-bottom: 28px; }
+    .pagina-inicio .hero h1 { font-size: 2.25rem; }
+    .pagina-inicio .botoes { flex-direction: column; }
+    .pagina-inicio .botoes .btn { width: 100%; }
+
+    .pagina-mural header { min-height: 0; padding: 14px 6vw; align-items: flex-start; flex-direction: column; gap: 12px; }
+    .pagina-mural nav { width: 100%; gap: 12px; flex-wrap: wrap; }
+    .pagina-mural .welcome { width: 100%; }
+    .pagina-mural main { width: 90vw; margin: 28px auto; }
+    .pagina-mural .heading { align-items: stretch; flex-direction: column; gap: 16px; }
+    .pagina-mural .heading > div:first-child { min-width: 0; }
     .pagina-mural .mural-acoes { width: 100%; align-items: stretch; flex-direction: column; }
     .pagina-mural .filtros-eventos { display: grid; grid-template-columns: 1fr; }
     .pagina-mural .filtros-eventos input, .pagina-mural .filtros-eventos select { width: 100%; max-width: none; }
-    .pagina-mural h1 { font-size: 32px; }
-    .pagina-mural .event { grid-template-columns: 1fr; gap: 8px; }
-    .pagina-mural .event h2, .pagina-mural .event p { grid-column: 1; }
+    .pagina-mural h1 { font-size: 30px; line-height: 1.15; }
+    .pagina-mural .event { min-width: 0; grid-template-columns: minmax(0, 1fr); }
+    .pagina-mural .event-media, .pagina-mural .event-media > img, .pagina-mural .event-no-image { height: 230px; min-height: 230px; }
+    .pagina-mural .event-content { padding: 16px; }
+    .pagina-mural .event-toolbar { justify-content: flex-start; gap: 8px; }
+    .pagina-mural .event-action { min-height: 42px; }
+    .pagina-mural .event-footer { align-items: stretch; flex-direction: column; gap: 10px; }
+    .pagina-mural .event-footer .detalhes-button { align-self: flex-end; }
+    .pagina-mural .event-status { gap: 6px; }
+    .pagina-mural .alerta-vagas { max-width: 100%; border-radius: 12px; }
+    .pagina-mural .event-description { -webkit-line-clamp: 4; }
+
+    .pagina-perfil header,
+    .pagina-novo-evento header,
+    .pagina-registo header { min-height: 60px; padding: 12px 5vw; gap: 12px; }
+    .pagina-perfil .brand,
+    .pagina-novo-evento .brand,
+    .pagina-registo .brand { font-size: 19px; }
+    .pagina-perfil header a:last-child,
+    .pagina-novo-evento header a:last-child,
+    .pagina-registo header a:last-child { text-align: right; }
+
+    .pagina-perfil main,
+    .pagina-novo-evento main,
+    .pagina-registo main { width: 90vw; }
+    .pagina-perfil .perfil-resumo { align-items: flex-start; gap: 12px; }
+    .pagina-perfil h1,
+    .pagina-perfil .formulario h1,
+    .pagina-novo-evento h1,
+    .pagina-registo h1 { font-size: 26px; line-height: 1.2; }
+    .pagina-perfil .formulario,
+    .pagina-novo-evento .formulario,
+    .pagina-registo .formulario { padding: 22px 18px; }
+    .pagina-perfil .config-opcao { align-items: flex-start; padding: 14px; }
+    .pagina-novo-evento .data-hora { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 12px; }
+    .pagina-novo-evento .campo-horario { grid-column: 1 / -1; }
+    .pagina-novo-evento .campo-horario input { max-width: 180px; }
+    .pagina-novo-evento .arquivo-controles { align-items: flex-start; flex-direction: column; }
+    .pagina-novo-evento .acoes { flex-direction: column; }
+    .pagina-novo-evento .acoes .button { width: 100%; }
+
+    .pagina-recuperacao { padding: 20px 0; }
+    .pagina-recuperacao .caixa-recuperacao { padding: 24px 20px; }
+    .pagina-recuperacao h1 { font-size: 26px; }
+    .pagina-recuperacao .button { width: 100%; }
+    .pagina-login { padding: 20px 14px; }
+    .caixa-login { padding: 26px 20px; border-radius: 18px; }
 }
 
 @media (max-width: 480px) {
     .pagina-registo main, .pagina-novo-evento main { margin: 26px auto; }
-    .pagina-registo .formulario, .pagina-novo-evento .formulario { padding: 24px 20px; }
     .pagina-perfil main { margin: 26px auto; }
-    .pagina-perfil .formulario { padding: 22px 18px; }
-    .pagina-novo-evento .data-hora { grid-template-columns: 1fr; gap: 0; }
-    .pagina-novo-evento .arquivo-controles { align-items: flex-start; flex-direction: column; }
+    .pagina-mural .event-toolbar > * { flex: 1 1 auto; }
+    .pagina-registo header,
+    .pagina-novo-evento header,
+    .pagina-perfil header { align-items: flex-start; flex-direction: column; }
+    .pagina-registo header a:last-child,
+    .pagina-novo-evento header a:last-child,
+    .pagina-perfil header a:last-child { text-align: left; }
+    .pagina-recuperacao main { width: 92vw; }
+    .pagina-perfil .perfil-cpf { padding: 17px; }
+    .pagina-perfil .perfil-cpf form { grid-template-columns: 1fr; }
+    .pagina-perfil .perfil-cpf form label { grid-column: auto; }
+    .pagina-perfil .perfil-cpf .button { width: 100%; }
+}
+
+/* Customer support */
+.pagina-sac { min-height: 100vh; margin: 0; background: var(--paper); color: var(--ink); font-family: "Segoe UI", sans-serif; }
+.pagina-sac header { min-height: 68px; padding: 0 6vw; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); background: #fff; }
+.pagina-sac .brand { color: var(--accent-dark); font-family: Georgia, serif; font-size: 22px; font-weight: 700; text-decoration: none; }
+.pagina-sac header > a:last-child { color: var(--accent-dark); font-size: 14px; font-weight: 700; }
+.pagina-sac main { width: min(1050px, 90vw); margin: 48px auto 72px; }
+.pagina-sac .sac-intro { margin-bottom: 26px; }
+.pagina-sac .eyebrow { margin: 0 0 8px; color: var(--accent); font-size: 12px; font-weight: 700; text-transform: uppercase; }
+.pagina-sac h1, .pagina-sac h2 { margin: 0; font-family: Georgia, serif; }
+.pagina-sac h1 { font-size: clamp(30px, 4vw, 42px); }
+.pagina-sac .sac-intro > p:last-child { margin: 10px 0 0; color: var(--muted); line-height: 1.6; }
+.pagina-sac .sac-contatos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.pagina-sac .sac-card, .pagina-sac .sac-duvidas { padding: 24px; border: 1px solid var(--line); border-top: 4px solid var(--accent); border-radius: 12px; background: #fff; box-shadow: 0 8px 24px rgba(20, 15, 15, 0.04); }
+.pagina-sac .sac-card h2, .pagina-sac .sac-duvidas h2 { font-size: 23px; }
+.pagina-sac .sac-card > p { margin: 9px 0 17px; color: var(--muted); line-height: 1.55; }
+.pagina-sac .sac-contato { width: fit-content; margin: 8px 0; display: block; color: var(--accent-dark); font-weight: 700; }
+.pagina-sac .button { min-height: 44px; margin-top: 14px; padding: 0 17px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--accent); border-radius: 8px; color: #fff; background: var(--accent); font: 700 14px "Segoe UI", sans-serif; text-decoration: none; cursor: pointer; }
+.pagina-sac .button:hover { background: var(--accent-dark); }
+.pagina-sac .feedback-form .campo { display: grid; gap: 7px; margin-bottom: 14px; }
+.pagina-sac .feedback-form label { font-size: 14px; font-weight: 600; }
+.pagina-sac .feedback-form input, .pagina-sac .feedback-form select, .pagina-sac .feedback-form textarea { width: 100%; min-height: 42px; padding: 10px 12px; border: 1px solid #bcb4ae; border-radius: 6px; color: var(--ink); background: #fff; font: inherit; }
+.pagina-sac .feedback-form textarea { min-height: 120px; resize: vertical; }
+.pagina-sac .feedback-status { color: #267044; font-size: 14px; }
+.pagina-sac .sac-duvidas { margin-top: 22px; }
+.pagina-sac .sac-duvidas h2 { margin-bottom: 12px; }
+.pagina-sac .sac-duvidas details { padding: 14px 0; border-top: 1px solid var(--line); }
+.pagina-sac .sac-duvidas summary { color: var(--ink); font-weight: 700; cursor: pointer; }
+.pagina-sac .sac-duvidas details p { margin: 10px 0 0; color: var(--muted); line-height: 1.6; }
+.pagina-sac .sac-duvidas details a { color: var(--accent-dark); font-weight: 600; }
+
+.pagina-detalhe-evento { min-height: 100vh; margin: 0; background: var(--paper); color: var(--ink); font-family: "Segoe UI", Arial, sans-serif; }
+.pagina-detalhe-evento header { min-height: 68px; padding: 0 6vw; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); background: #fff; }
+.pagina-detalhe-evento .brand { color: var(--accent-dark); font: 700 22px Georgia, serif; text-decoration: none; }
+.pagina-detalhe-evento header > a:last-child, .pagina-detalhe-evento .voltar-evento { color: var(--accent-dark); font-size: 14px; font-weight: 700; text-decoration: none; }
+.pagina-detalhe-evento header nav { display: flex; align-items: center; gap: 20px; }
+.pagina-detalhe-evento header nav a { color: var(--accent-dark); font-size: 14px; font-weight: 700; text-decoration: none; }
+.pagina-detalhe-evento main { width: min(1050px, 92vw); margin: 34px auto 60px; }
+.pagina-detalhe-evento .voltar-evento { display: inline-block; margin-bottom: 18px; }
+.pagina-detalhe-evento .detalhe-card { overflow: hidden; border: 1px solid var(--line); border-radius: 18px; background: #fff; box-shadow: 0 10px 28px rgba(20, 15, 15, 0.06); }
+.pagina-detalhe-evento .detalhe-capa img { width: 100%; max-height: 480px; display: block; object-fit: cover; }
+.pagina-detalhe-evento .detalhe-galeria { padding: clamp(20px, 4vw, 36px); border-top: 1px solid var(--line); background: #fff; }
+.pagina-detalhe-evento .detalhe-galeria > h2 { margin: 0 0 16px; font: 700 24px Georgia, serif; }
+.pagina-detalhe-evento .galeria-carrossel { position: relative; width: min(820px, 100%); height: clamp(250px, 52vw, 520px); margin: 0 auto; overflow: hidden; border-radius: 12px; background: #211d1d; }
+.pagina-detalhe-evento .galeria-slide, .pagina-detalhe-evento .galeria-slide img { width: 100%; height: 100%; }
+.pagina-detalhe-evento .galeria-slide img { display: block; object-fit: contain; }
+.pagina-detalhe-evento .galeria-seta { position: absolute; z-index: 1; top: 50%; width: 44px; height: 44px; display: grid; place-items: center; transform: translateY(-50%); border: 1px solid rgba(255,255,255,.75); border-radius: 50%; color: #fff; background: rgba(32,25,25,.72); font: 700 32px/1 "Segoe UI", sans-serif; cursor: pointer; }
+.pagina-detalhe-evento .galeria-seta:hover, .pagina-detalhe-evento .galeria-seta:focus-visible { background: var(--accent); }
+.pagina-detalhe-evento .galeria-anterior { left: 14px; }
+.pagina-detalhe-evento .galeria-proxima { right: 14px; }
+.pagina-detalhe-evento .galeria-contador { position: absolute; right: 14px; bottom: 12px; margin: 0; padding: 6px 10px; border-radius: 999px; color: #fff; background: rgba(32,25,25,.75); font-size: 13px; font-weight: 700; }
+.pagina-detalhe-evento .detalhe-sem-imagem { min-height: 160px; display: grid; place-items: center; color: #a77c7c; font: 700 24px Georgia, serif; background: linear-gradient(145deg, #f8e9e9, #eee5e0); }
+.pagina-detalhe-evento .detalhe-conteudo { padding: clamp(20px, 4vw, 42px); }
+.pagina-detalhe-evento .detalhe-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; color: var(--muted); font-size: 14px; }
+.pagina-detalhe-evento .detalhe-meta .category { color: var(--accent); font-weight: 700; text-transform: uppercase; }
+.pagina-detalhe-evento h1 { margin: 12px 0 28px; color: var(--ink); font: 700 clamp(30px, 5vw, 44px) Georgia, serif; }
+.pagina-detalhe-evento .detalhe-secao { padding: 20px 0; border-top: 1px solid var(--line); }
+.pagina-detalhe-evento .detalhe-secao h2 { margin: 0 0 10px; font: 700 20px Georgia, serif; }
+.pagina-detalhe-evento .detalhe-secao p { margin: 6px 0; color: var(--muted); line-height: 1.65; white-space: pre-line; }
+.pagina-detalhe-evento .detalhe-secao a { color: var(--accent-dark); font-weight: 600; overflow-wrap: anywhere; }
+.pagina-detalhe-evento .detalhe-secao .preco-evento { color: var(--ink); font-size: 22px; font-weight: 800; }
+.pagina-detalhe-evento .detalhe-secao .preco-gratuito { font-size: 16px; font-weight: 400; }
+.pagina-detalhe-evento .detalhe-secao .aviso-pagamento { color: #795300; font-size: 14px; }
+.pagina-detalhe-evento .detalhe-acoes { padding-top: 20px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; border-top: 1px solid var(--line); }
+.pagina-detalhe-evento .detalhe-acoes form { margin: 0; }
+.pagina-detalhe-evento .detalhe-acoes .button { min-height: 46px; padding: 0 20px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--accent); border-radius: 10px; color: #fff; background: var(--accent); font-weight: 700; text-decoration: none; cursor: pointer; }
+.pagina-detalhe-evento .detalhe-acoes .button.secondary { color: var(--accent-dark); background: #fff; }
+.pagina-detalhe-evento .detalhe-acoes .vagas-esgotadas { margin: 0; color: var(--accent-dark); font-weight: 700; }
+
+.pagina-meus-eventos { min-height: 100vh; margin: 0; background: var(--paper); color: var(--ink); font-family: "Segoe UI", Arial, sans-serif; }
+.pagina-meus-eventos header { min-height: 68px; padding: 0 6vw; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); background: #fff; }
+.pagina-meus-eventos .brand { color: var(--accent-dark); font: 700 22px Georgia, serif; text-decoration: none; }
+.pagina-meus-eventos header nav { display: flex; align-items: center; gap: 20px; }
+.pagina-meus-eventos header nav a:not(.button) { color: var(--accent-dark); font-size: 14px; font-weight: 700; text-decoration: none; }
+.pagina-meus-eventos header .button { min-height: 42px; padding: 0 16px; border-radius: 9px; font-size: 14px; }
+.pagina-meus-eventos main { width: min(1050px, 92vw); margin: 40px auto 64px; }
+.pagina-meus-eventos .eyebrow { margin: 0 0 8px; color: var(--accent); font-size: 12px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
+.pagina-meus-eventos h1, .pagina-meus-eventos h2, .pagina-meus-eventos h3 { font-family: Georgia, serif; }
+.pagina-meus-eventos h1 { margin: 0; font-size: clamp(32px, 4vw, 42px); }
+.pagina-meus-eventos .intro { margin: 10px 0 32px; color: var(--muted); }
+.pagina-meus-eventos .meus-eventos-secao { margin-top: 28px; }
+.pagina-meus-eventos .meus-eventos-secao > h2 { margin: 0 0 14px; font-size: 25px; }
+.pagina-meus-eventos .email-aviso { padding: 12px 15px; border: 1px solid #e8d9ac; border-radius: 9px; color: #6d5113; background: #fff9e8; font-size: 14px; }
+.pagina-meus-eventos .meus-eventos-lista { display: grid; gap: 14px; }
+.pagina-meus-eventos .meu-evento { padding: 20px; display: flex; align-items: center; justify-content: space-between; gap: 20px; border: 1px solid var(--line); border-radius: 14px; background: #fff; box-shadow: 0 6px 18px rgba(20, 15, 15, 0.04); }
+.pagina-meus-eventos .meu-evento h3 { margin: 0 0 9px; font-size: 22px; }
+.pagina-meus-eventos .meu-evento p { margin: 5px 0; color: var(--muted); line-height: 1.5; }
+.pagina-meus-eventos .meu-evento a:not(.button) { display: inline-block; margin-top: 8px; color: var(--accent-dark); font-weight: 700; }
+.pagina-meus-eventos .meu-evento-info .baixar-ingresso { min-height: 42px; margin: 14px 0 0 10px; padding: 0 15px; display: inline-flex; align-items: center; border: 1px solid var(--accent); border-radius: 9px; color: #fff; background: var(--accent); font-weight: 700; text-decoration: none; }
+.pagina-meus-eventos .meu-evento .meu-ingresso-status { color: #267044; font-weight: 700; }
+.pagina-meus-eventos .qr-ingresso { min-width: 150px; text-align: center; }
+.pagina-meus-eventos .qr-ingresso img { width: 148px; height: 148px; display: block; border: 1px solid var(--line); border-radius: 8px; background: white; }
+.pagina-meus-eventos .qr-ingresso p { max-width: 180px; font-size: 12px; }
+.pagina-meus-eventos .meu-evento > .button { min-height: 42px; padding: 0 15px; border-radius: 9px; }
+.pagina-meus-eventos .meu-evento > .button.secondary { border-color: var(--line); color: var(--accent-dark); background: #fff; }
+.pagina-meus-eventos .meus-eventos-vazio { padding: 20px; border: 1px dashed #c9bfba; border-radius: 10px; color: var(--muted); background: #fff; line-height: 1.6; }
+.pagina-meus-eventos .meus-eventos-vazio a { color: var(--accent-dark); font-weight: 700; }
+
+.pagina-validar-ingresso { min-height: 100vh; margin: 0; display: grid; place-items: center; padding: 24px; color: var(--ink); background: var(--paper); font-family: "Segoe UI", Arial, sans-serif; }
+.pagina-validar-ingresso main { width: min(520px, 100%); }
+.pagina-validar-ingresso .validacao-card { padding: clamp(24px, 6vw, 40px); border: 1px solid #cfe5d4; border-top: 6px solid #267044; border-radius: 16px; background: #fff; box-shadow: 0 12px 32px rgba(20, 15, 15, 0.08); }
+.pagina-validar-ingresso .validacao-selo { width: fit-content; margin: 0 0 14px; padding: 8px 12px; border-radius: 999px; color: #1d5e36; background: #eaf6ed; font-size: 13px; font-weight: 800; text-transform: uppercase; }
+.pagina-validar-ingresso h1 { margin: 0; font: 700 30px Georgia, serif; }
+.pagina-validar-ingresso .validacao-data { color: var(--muted); }
+.pagina-validar-ingresso dl { margin: 24px 0; }
+.pagina-validar-ingresso dl div { padding: 12px 0; border-top: 1px solid var(--line); }
+.pagina-validar-ingresso dt { color: var(--muted); font-size: 13px; }
+.pagina-validar-ingresso dd { margin: 4px 0 0; font-weight: 700; overflow-wrap: anywhere; }
+.pagina-validar-ingresso .validacao-aviso { color: #267044; font-weight: 600; }
+
+.rodape-site { margin-top: 56px; padding: 38px max(5vw, calc((100vw - 1180px) / 2)); color: #fff; background: #2d2525; }
+.rodape-conteudo { max-width: 1180px; margin: 0 auto; display: grid; grid-template-columns: minmax(210px, 0.8fr) minmax(0, 1.7fr); gap: 34px; align-items: start; }
+.rodape-intro { max-width: 320px; }
+.rodape-etiqueta { margin: 0 0 8px; color: #f2b9bd; font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+.rodape-intro h2 { margin: 0; color: #fff; font: 700 25px Georgia, serif; }
+.rodape-intro > p:last-child { margin: 10px 0 0; color: #e2d9d9; font-size: 14px; line-height: 1.6; }
+.rodape-opcoes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.rodape-opcoes a { min-height: 76px; padding: 13px 15px; display: flex; flex-direction: column; justify-content: center; gap: 5px; border: 1px solid #625454; border-radius: 10px; color: #fff; text-decoration: none; transition: background 0.2s ease, border-color 0.2s ease; }
+.rodape-opcoes a:hover, .rodape-opcoes a:focus-visible { border-color: #e6a3a9; background: #433536; }
+.rodape-opcoes strong { font-size: 14px; }
+.rodape-opcoes span { color: #e2d9d9; font-size: 12px; line-height: 1.45; }
+.rodape-base { max-width: 1180px; margin: 24px auto 0; padding-top: 16px; border-top: 1px solid #625454; color: #d3c8c8; font-size: 12px; }
+
+@media (max-width: 700px) {
+    .pagina-sac header { min-height: 60px; padding: 12px 5vw; gap: 12px; }
+    .pagina-sac main { margin: 28px auto 48px; }
+    .pagina-sac .sac-contatos { grid-template-columns: 1fr; }
+    .pagina-sac .sac-card, .pagina-sac .sac-duvidas { padding: 20px 17px; }
+    .pagina-detalhe-evento header { min-height: 60px; padding: 12px 5vw; gap: 12px; }
+    .pagina-detalhe-evento main { margin: 24px auto 42px; }
+    .pagina-detalhe-evento .detalhe-galeria { padding: 20px 16px; }
+    .pagina-detalhe-evento .galeria-carrossel { height: clamp(220px, 68vw, 400px); }
+    .pagina-detalhe-evento .galeria-seta { width: 40px; height: 40px; }
+    .pagina-detalhe-evento .detalhe-capa img { height: 230px; }
+    .pagina-detalhe-evento .detalhe-acoes { align-items: stretch; flex-direction: column; }
+    .pagina-detalhe-evento .detalhe-acoes form, .pagina-detalhe-evento .detalhe-acoes .button { width: 100%; }
+    .pagina-meus-eventos header { min-height: 60px; padding: 12px 5vw; gap: 12px; }
+    .pagina-meus-eventos header nav { gap: 12px; flex-wrap: wrap; justify-content: flex-end; }
+    .pagina-meus-eventos header .welcome { width: 100%; text-align: right; }
+    .pagina-meus-eventos main { margin: 26px auto 44px; }
+    .pagina-meus-eventos .meu-evento { align-items: flex-start; flex-direction: column; }
+    .pagina-meus-eventos .qr-ingresso { align-self: center; }
+    .rodape-site { margin-top: 38px; padding: 30px 5vw; }
+    .rodape-conteudo { grid-template-columns: 1fr; gap: 20px; }
+}
+
+@media (max-width: 480px) {
+    .rodape-opcoes { grid-template-columns: 1fr; }
 }

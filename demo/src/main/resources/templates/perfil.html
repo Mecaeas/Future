@@ -21,6 +21,19 @@
             </div>
         </section>
 
+        <section class="perfil-sessao perfil-cpf">
+            <h2>CPF para ingressos</h2>
+            <p>Seu CPF aparecerá no documento do ingresso. Ele é usado para identificação na entrada.</p>
+            <p class="erro" th:if="${erroCpf != null}" th:text="${erroCpf}" role="alert"></p>
+            <p class="mensagem-sucesso" th:if="${sucessoCpf != null}" th:text="${sucessoCpf}" role="status"></p>
+            <form action="/perfil/cpf" method="post">
+                <label for="cpf">CPF</label>
+                <input id="cpf" name="cpf" type="text" inputmode="numeric" autocomplete="off"
+                       maxlength="14" placeholder="000.000.000-00" th:value="${usuario.cpf}" required>
+                <button class="button" type="submit">Salvar CPF</button>
+            </form>
+        </section>
+
         <nav class="config-opcoes" aria-label="Configurações da conta">
             <a class="config-opcao" href="/perfil/alterar-senha">
                 <span>
@@ -44,5 +57,16 @@
             </form>
         </section>
     </main>
+    <script>
+        const campoCpf = document.getElementById("cpf");
+        campoCpf.addEventListener("input", () => {
+            const digitos = campoCpf.value.replace(/\D/g, "").slice(0, 11);
+            let formatado = digitos.slice(0, 3);
+            if (digitos.length > 3) formatado += "." + digitos.slice(3, 6);
+            if (digitos.length > 6) formatado += "." + digitos.slice(6, 9);
+            if (digitos.length > 9) formatado += "-" + digitos.slice(9, 11);
+            campoCpf.value = formatado;
+        });
+    </script>
 </body>
 </html>

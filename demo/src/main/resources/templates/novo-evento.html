@@ -25,8 +25,9 @@
                 </div>
 
                 <div class="campo">
-                    <label for="endereco">Local</label>
-                    <input id="endereco" name="endereco" type="text" maxlength="200" required>
+                    <label for="endereco">Endereço completo</label>
+                    <input id="endereco" name="endereco" type="text" maxlength="200"
+                           placeholder="Rua, número, bairro e cidade" required>
                 </div>
 
                 <div class="campo">
@@ -36,27 +37,48 @@
                         <option value="Esporte">Esporte</option>
                         <option value="Cultura">Cultura</option>
                         <option value="Tecnologia">Tecnologia</option>
+                        <option value="Educação">Educação</option>
                         <option value="Geral">Geral</option>
                     </select>
                 </div>
 
                 <div class="campo">
-                    <label for="imagens">Imagens do evento</label>
-                    <input class="arquivo-input" id="imagens" name="imagens" type="file" accept="image/jpeg,image/png,image/gif" multiple aria-describedby="ajudaImagens nomesImagens">
+                    <label for="capa">Foto de capa (obrigatória)</label>
+                    <input class="arquivo-input seletor-imagem-evento" id="capa" name="capa" type="file"
+                           accept="image/jpeg,image/png,image/gif" required data-preview-id="previewCapa"
+                           data-nomes-id="nomeCapa" aria-describedby="ajudaCapa nomeCapa">
                     <div class="arquivo-controles">
-                        <label class="arquivo-botao" for="imagens">Selecionar imagens</label>
-                        <span id="nomesImagens" class="arquivo-nomes" aria-live="polite">Nenhuma imagem selecionada</span>
+                        <label class="arquivo-botao" for="capa">Selecionar foto de capa</label>
+                        <span id="nomeCapa" class="arquivo-nomes" aria-live="polite">Nenhuma foto selecionada</span>
                     </div>
-                    <p id="ajudaImagens" class="ajuda">Envie até 5 imagens JPG, PNG ou GIF, com no máximo 5 MB cada.</p>
+                    <p id="ajudaCapa" class="ajuda">Envie uma imagem JPG, PNG ou GIF de até 5 MB.</p>
+                    <div id="previewCapa" class="previews" aria-live="polite"></div>
+                </div>
+
+                <div class="campo">
+                    <label for="imagens">Fotos do evento (opcional)</label>
+                    <input class="arquivo-input seletor-imagem-evento" id="imagens" name="imagens" type="file"
+                           accept="image/jpeg,image/png,image/gif" multiple data-preview-id="previews"
+                           data-nomes-id="nomesImagens" aria-describedby="ajudaImagens nomesImagens">
+                    <div class="arquivo-controles">
+                        <label class="arquivo-botao" for="imagens">Selecionar fotos do evento</label>
+                        <span id="nomesImagens" class="arquivo-nomes" aria-live="polite">Nenhuma foto selecionada</span>
+                    </div>
+                    <p id="ajudaImagens" class="ajuda">Opcional: até 5 fotos JPG, PNG ou GIF de até 5 MB cada. Serão exibidas em Mais detalhes.</p>
                     <div id="previews" class="previews" aria-live="polite"></div>
                 </div>
 
                 <div class="data-hora">
                     <div class="campo">
-                        <label for="data">Data</label>
+                        <label for="data">Data inicial</label>
                         <input id="data" name="data" type="date" required>
                     </div>
                     <div class="campo">
+                        <label for="dataFim">Data final (opcional)</label>
+                        <input id="dataFim" name="dataFim" type="date" aria-describedby="ajudaDataFim">
+                        <p id="ajudaDataFim" class="ajuda">Preencha apenas se o evento durar mais de um dia.</p>
+                    </div>
+                    <div class="campo campo-horario">
                         <label for="hora">Horário</label>
                         <input id="hora" name="hora" type="time" required>
                     </div>
@@ -70,8 +92,28 @@
                 </div>
 
                 <div class="campo">
-                    <label for="descricao">Descrição</label>
+                    <label class="opcao-checkbox" for="pago">
+                        <input id="pago" name="pago" type="checkbox" value="true">
+                        Evento pago
+                    </label>
+                </div>
+                <div class="campo" id="campoValorIngresso">
+                    <label for="valorIngresso">Valor do ingresso (R$)</label>
+                    <input id="valorIngresso" name="valorIngresso" type="number" min="0.01" step="0.01" inputmode="decimal"
+                           aria-describedby="ajudaValorIngresso" disabled>
+                    <p id="ajudaValorIngresso" class="ajuda">Selecione “Evento pago” para informar o valor.</p>
+                </div>
+
+                <div class="campo">
+                    <label for="descricao">Descrição detalhada do evento</label>
                     <textarea id="descricao" name="descricao" maxlength="2000"></textarea>
+                </div>
+
+                <div class="campo">
+                    <label for="informacaoOrganizador">Informações sobre a empresa/organizador (opcional)</label>
+                    <textarea id="informacaoOrganizador" name="informacaoOrganizador" maxlength="500"
+                              aria-describedby="ajudaOrganizador"></textarea>
+                    <p id="ajudaOrganizador" class="ajuda">Conte aos participantes sobre a organização responsável pelo evento.</p>
                 </div>
 
                 <div class="acoes">
@@ -83,42 +125,23 @@
     </main>
 
     <script>
-        const seletorImagens = document.getElementById("imagens");
-        const previews = document.getElementById("previews");
-        const nomesImagens = document.getElementById("nomesImagens");
-        let urlsPreviews = [];
-
-        seletorImagens.addEventListener("change", () => {
-            urlsPreviews.forEach(URL.revokeObjectURL);
-            urlsPreviews = [];
-            previews.replaceChildren();
-
-            const arquivos = Array.from(seletorImagens.files);
-            nomesImagens.textContent = arquivos.length
-                ? arquivos.map(arquivo => arquivo.name).join(", ")
-                : "Nenhuma imagem selecionada";
-
-            const arquivoInvalido = arquivos.find(arquivo =>
-                !["image/jpeg", "image/png", "image/gif"].includes(arquivo.type) || arquivo.size > 5 * 1024 * 1024
-            );
-
-            if (arquivos.length > 5) {
-                seletorImagens.setCustomValidity("Selecione no máximo 5 imagens.");
-            } else if (arquivoInvalido) {
-                seletorImagens.setCustomValidity("Use JPG, PNG ou GIF de até 5 MB cada.");
-            } else {
-                seletorImagens.setCustomValidity("");
-            }
-
-            arquivos.filter(arquivo => arquivo.type.startsWith("image/")).forEach(arquivo => {
-                const url = URL.createObjectURL(arquivo);
-                urlsPreviews.push(url);
-                const imagem = document.createElement("img");
-                imagem.src = url;
-                imagem.alt = arquivo.name;
-                previews.append(imagem);
-            });
+        const eventoPago = document.getElementById("pago");
+        const valorIngresso = document.getElementById("valorIngresso");
+        eventoPago.addEventListener("change", () => {
+            valorIngresso.disabled = !eventoPago.checked;
+            valorIngresso.required = eventoPago.checked;
         });
+
+        const dataInicial = document.getElementById("data");
+        const dataFinal = document.getElementById("dataFim");
+        dataInicial.addEventListener("change", () => {
+            dataFinal.min = dataInicial.value;
+            if (dataFinal.value && dataFinal.value < dataInicial.value) {
+                dataFinal.value = "";
+            }
+        });
+
     </script>
+    <script src="/evento-imagens.js"></script>
 </body>
 </html>

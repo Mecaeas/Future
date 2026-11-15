@@ -45,6 +45,12 @@
                 </div>
 
                 <div class="campo">
+                    <label for="cpf">CPF</label>
+                    <input id="cpf" name="cpf" type="text" inputmode="numeric" autocomplete="off"
+                           maxlength="14" placeholder="000.000.000-00" pattern="\d{3}\.\d{3}\.\d{3}-\d{2}" required>
+                </div>
+
+                <div class="campo">
                     <label id="documentoLabel" for="documento">Data de nascimento</label>
                     <input id="documento" type="date" name="documento" autocomplete="bday" required>
                 </div>
@@ -71,14 +77,26 @@
         const tipoConta = document.getElementById("tipo");
         const campoDocumento = document.getElementById("documento");
         const rotuloDocumento = document.getElementById("documentoLabel");
+        const campoCpf = document.getElementById("cpf");
+
+        campoCpf.addEventListener("input", () => {
+            const digitos = campoCpf.value.replace(/\D/g, "").slice(0, 11);
+            let formatado = digitos.slice(0, 3);
+            if (digitos.length > 3) formatado += "." + digitos.slice(3, 6);
+            if (digitos.length > 6) formatado += "." + digitos.slice(6, 9);
+            if (digitos.length > 9) formatado += "-" + digitos.slice(9, 11);
+            campoCpf.value = formatado;
+        });
 
         function atualizarDocumentoLabel() {
             const cidadao = tipoConta.value === "Cidadao";
+            campoDocumento.value = "";
             rotuloDocumento.textContent = cidadao ? "Data de nascimento" : "CNPJ";
             campoDocumento.type = cidadao ? "date" : "text";
             campoDocumento.placeholder = cidadao ? "" : "00.000.000/0000-00";
-            campoDocumento.pattern = cidadao ? "" : "[0-9./-]{11,18}";
-            campoDocumento.inputMode = cidadao ? "" : "text";
+            campoDocumento.maxLength = cidadao ? 10 : 18;
+            campoDocumento.pattern = cidadao ? "" : "\\d{2}\\.\\d{3}\\.\\d{3}/\\d{4}-\\d{2}";
+            campoDocumento.inputMode = cidadao ? "" : "numeric";
             campoDocumento.autocomplete = cidadao ? "bday" : "off";
             if (cidadao) {
                 const hoje = new Date();
@@ -91,6 +109,25 @@
                 campoDocumento.removeAttribute("max");
             }
         }
+
+        campoDocumento.addEventListener("input", () => {
+            if (tipoConta.value === "Cidadao") {
+                return;
+            }
+
+            const digitos = campoDocumento.value.replace(/\D/g, "").slice(0, 14);
+            let cnpjFormatado = digitos;
+            if (digitos.length > 12) {
+                cnpjFormatado = digitos.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{0,2}).*/, "$1.$2.$3/$4-$5");
+            } else if (digitos.length > 8) {
+                cnpjFormatado = digitos.replace(/^(\d{2})(\d{3})(\d{3})(\d{0,4}).*/, "$1.$2.$3/$4");
+            } else if (digitos.length > 5) {
+                cnpjFormatado = digitos.replace(/^(\d{2})(\d{3})(\d{0,3}).*/, "$1.$2.$3");
+            } else if (digitos.length > 2) {
+                cnpjFormatado = digitos.replace(/^(\d{2})(\d{0,3}).*/, "$1.$2");
+            }
+            campoDocumento.value = cnpjFormatado;
+        });
 
         tipoConta.addEventListener("change", atualizarDocumentoLabel);
         atualizarDocumentoLabel();

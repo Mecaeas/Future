@@ -176,10 +176,16 @@ public class UsuarioController {
                                @RequestParam("senha") String senha,
                                @RequestParam("tipo") String tipo,
                                @RequestParam("documento") String documento,
+                               @RequestParam(value = "cpf", required = false) String cpf,
                                RedirectAttributes mensagens) {
         
         String emailLimpo = (email != null) ? email.trim().toLowerCase() : "";
         String docLimpo = (documento != null) ? documento.trim() : "";
+        String cpfFormatado = CpfUtils.formatarSeValido(cpf);
+        if (cpfFormatado == null) {
+            mensagens.addFlashAttribute("erroRegisto", "Informe um CPF válido com 11 dígitos.");
+            return "redirect:/registo";
+        }
 
         // 1. Verificar se o e-mail já existe
         if (repositorio.findByEmail(emailLimpo) != null) {
@@ -194,6 +200,7 @@ public class UsuarioController {
         }
 
         // 3. Cadastrar Cidadão ou PJ
+        Usuario novoUsuario;
         if ("Cidadao".equalsIgnoreCase(tipo)) {
             LocalDate dataNascimento;
             try {
@@ -211,16 +218,23 @@ public class UsuarioController {
                 return "redirect:/registo";
             }
             String senhaCriptografada = passwordEncoder.encode(senha);
-            repositorio.save(new Cidadao(nome, emailLimpo, senhaCriptografada, dataNascimento));
+            novoUsuario = new Cidadao(nome, emailLimpo, senhaCriptografada, dataNascimento);
         } else {
-            // Cadastro de PJ / Empresa
-            if (docLimpo.isEmpty()) {
-                mensagens.addFlashAttribute("erroRegisto", "Informe o CNPJ da empresa.");
+            String cnpjInformado = docLimpo;
+            String cnpj = docLimpo.replaceAll("\\D", "");
+            boolean cnpjSomenteDigitos = cnpjInformado.matches("\\d{14}");
+            boolean cnpjComMascara = cnpjInformado.matches("\\d{2}\\.\\d{3}\\.\\d{3}/\\d{4}-\\d{2}");
+            if (!cnpj.matches("\\d{14}") || (!cnpjSomenteDigitos && !cnpjComMascara)) {
+                mensagens.addFlashAttribute("erroRegisto", "Informe um CNPJ com exatamente 14 dígitos.");
                 return "redirect:/registo";
             }
+            String cnpjFormatado = cnpj.replaceFirst(
+                    "(\\d{2})(\\d{3})(\\d{3})(\\d{4})(\\d{2})", "$1.$2.$3/$4-$5");
             String senhaCriptografada = passwordEncoder.encode(senha);
-            repositorio.save(new PessoaJuridica(nome, emailLimpo, senhaCriptografada, docLimpo));
+            novoUsuario = new PessoaJuridica(nome, emailLimpo, senhaCriptografada, cnpjFormatado);
         }
+        novoUsuario.setCpf(cpfFormatado);
+        repositorio.save(novoUsuario);
         
         mensagens.addFlashAttribute("mensagemLogin", "Conta criada com sucesso! Faça login.");
         return "redirect:/login";
@@ -235,7 +249,37 @@ public class UsuarioController {
         }
 
         model.addAttribute("usuario", usuario);
+        Object erroCpf = session.getAttribute("erroCpf");
+        if (erroCpf != null) {
+            model.addAttribute("erroCpf", erroCpf);
+            session.removeAttribute("erroCpf");
+        }
         return "perfil";
+    }
+
+    @PostMapping("/perfil/cpf")
+    public String salvarCpf(@RequestParam(value = "cpf", required = false) String cpf, HttpSession session,
+                            RedirectAttributes mensagens) {
+        Usuario usuario = usuarioDaSessao(session);
+        if (usuario == null) {
+            session.invalidate();
+            return "redirect:/login";
+        }
+
+        String cpfFormatado = CpfUtils.formatarSeValido(cpf);
+        if (cpfFormatado == null) {
+            mensagens.addFlashAttribute("erroCpf", "Informe um CPF válido com 11 dígitos.");
+        } else {
+            usuario.setCpf(cpfFormatado);
+            repositorio.save(usuario);
+            Object ingressoPendente = session.getAttribute("ingressoPendenteCpf");
+            if (ingressoPendente instanceof String token && !token.isBlank()) {
+                session.removeAttribute("ingressoPendenteCpf");
+                return "redirect:/ingressos/" + token + "/baixar";
+            }
+            mensagens.addFlashAttribute("sucessoCpf", "CPF salvo. Agora você pode baixar seu ingresso.");
+        }
+        return "redirect:/perfil";
     }
 // Exemplo de atualização no UsuarioController.java
 

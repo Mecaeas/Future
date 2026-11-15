@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Meus eventos - MWK Eventos</title>
+    <link rel="stylesheet" href="/estilo.css">
+</head>
+<body class="pagina-meus-eventos">
+    <header>
+        <a class="brand" href="/mural">MWK Eventos</a>
+        <nav aria-label="Navegação principal">
+            <span class="welcome" th:if="${usuarioNome != null}" th:text="|Olá, ${usuarioNome}|">Olá</span>
+            <a href="/perfil">Perfil</a>
+            <a class="button" href="/mural">Voltar ao mural</a>
+        </nav>
+    </header>
+    <main>
+        <p class="eyebrow">Sua área</p>
+        <h1>Meus eventos</h1>
+        <p class="intro">Acompanhe suas inscrições e os eventos que você publicou.</p>
+
+        <section class="meus-eventos-secao" aria-labelledby="inscricoesTitulo">
+            <h2 id="inscricoesTitulo">Eventos confirmados</h2>
+            <p class="email-aviso">Seus ingressos com QR Code estão disponíveis aqui. O envio por e-mail ainda não está ativado.</p>
+            <div class="meus-eventos-lista" th:if="${!#lists.isEmpty(ingressos)}">
+                <article class="meu-evento ingresso-card" th:each="ingresso : ${ingressos}">
+                    <div class="meu-evento-info">
+                        <h3 th:text="${ingresso.evento.nome}">Nome do evento</h3>
+                        <p th:text="${ingresso.evento.dataHoraFormatada}">Data e hora</p>
+                        <p th:text="${ingresso.evento.endereco}">Endereço</p>
+                        <p class="meu-ingresso-status" th:text="${ingresso.evento.pago ? 'Ingresso (compra simulada)' : 'Presença confirmada'}">Presença confirmada</p>
+                        <a th:href="@{/eventos/{id}(id=${ingresso.evento.id})}">Ver detalhes do evento</a>
+                        <a class="button baixar-ingresso" th:href="@{/ingressos/{token}/baixar(token=${ingresso.token})}">Baixar ingresso em PDF</a>
+                    </div>
+                    <div class="qr-ingresso">
+                        <img th:src="@{/ingressos/{token}/qr(token=${ingresso.token})}"
+                             th:alt="|QR Code de ingresso para ${ingresso.evento.nome}|">
+                        <p>Apresente este QR Code na entrada.</p>
+                    </div>
+                </article>
+            </div>
+            <p class="meus-eventos-vazio" th:if="${#lists.isEmpty(ingressos)}">
+                Você ainda não confirmou presença em nenhum evento.
+                <a href="/mural">Explore o mural</a>
+            </p>
+        </section>
+
+        <section class="meus-eventos-secao" aria-labelledby="criadosTitulo">
+            <h2 id="criadosTitulo">Eventos criados por você</h2>
+            <div class="meus-eventos-lista" th:if="${!#lists.isEmpty(eventosCriados)}">
+                <article class="meu-evento" th:each="evento : ${eventosCriados}">
+                    <div class="meu-evento-info">
+                        <h3 th:text="${evento.nome}">Nome do evento</h3>
+                        <p th:text="${evento.dataHoraFormatada}">Data e hora</p>
+                        <p th:text="${evento.endereco}">Endereço</p>
+                        <p th:text="${evento.resumoParticipantes}">0 pessoas confirmadas</p>
+                        <a th:href="@{/eventos/{id}(id=${evento.id})}">Ver detalhes do evento</a>
+                    </div>
+                    <a class="button secondary" th:href="@{/eventos/{id}/editar(id=${evento.id})}">Editar evento</a>
+                </article>
+            </div>
+            <p class="meus-eventos-vazio" th:if="${#lists.isEmpty(eventosCriados)}">
+                Você ainda não criou nenhum evento.
+                <a href="/eventos/novo">Criar um evento</a>
+            </p>
+        </section>
+    </main>
+    <div th:replace="~{fragments/rodape :: atendimento}"></div>
+</body>
+</html>

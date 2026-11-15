@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -22,6 +23,7 @@ class EventoControllerTest {
     private EventoRepository eventos;
     private ImagemEventoService imagens;
     private UsuarioRepository usuarios;
+    private IngressoRepository ingressos;
     private EventoController controller;
 
     @BeforeEach
@@ -29,7 +31,8 @@ class EventoControllerTest {
         eventos = mock(EventoRepository.class);
         imagens = mock(ImagemEventoService.class);
         usuarios = mock(UsuarioRepository.class);
-        controller = new EventoController(eventos, imagens, usuarios);
+        ingressos = mock(IngressoRepository.class);
+        controller = new EventoController(eventos, imagens, usuarios, ingressos);
     }
 
     @Test
@@ -52,6 +55,39 @@ class EventoControllerTest {
     }
 
     @Test
+    void criadorPodeExcluirEventoEImagens() throws Exception {
+        Evento evento = criarEvento();
+        evento.adicionarImagem("/uploads/eventos/123e4567-e89b-12d3-a456-426614174000.png");
+        when(eventos.findById(7L)).thenReturn(Optional.of(evento));
+        MockHttpSession sessao = new MockHttpSession();
+        sessao.setAttribute("usuarioEmail", "criador@example.com");
+        RedirectAttributesModelMap mensagens = new RedirectAttributesModelMap();
+
+        String resultado = controller.excluirEvento(7L, sessao, mensagens);
+
+        assertEquals("redirect:/mural", resultado);
+        assertEquals("Evento excluído com sucesso.", mensagens.getFlashAttributes().get("mensagemMural"));
+        verify(eventos).delete(evento);
+        verify(imagens).remover(List.of("/uploads/eventos/123e4567-e89b-12d3-a456-426614174000.png"));
+    }
+
+    @Test
+    void outraPessoaNaoPodeExcluirEvento() throws Exception {
+        Evento evento = criarEvento();
+        when(eventos.findById(7L)).thenReturn(Optional.of(evento));
+        MockHttpSession sessao = new MockHttpSession();
+        sessao.setAttribute("usuarioEmail", "outra@example.com");
+        RedirectAttributesModelMap mensagens = new RedirectAttributesModelMap();
+
+        String resultado = controller.excluirEvento(7L, sessao, mensagens);
+
+        assertEquals("redirect:/mural", resultado);
+        assertEquals("Você só pode excluir os eventos que criou.", mensagens.getFlashAttributes().get("erroMural"));
+        verify(eventos, never()).delete(any(Evento.class));
+        verify(imagens, never()).remover(any());
+    }
+
+    @Test
     void outraPessoaNaoPodeAlterarEventoNemSalvarImagens() throws Exception {
         Evento evento = criarEvento();
         when(eventos.findById(7L)).thenReturn(Optional.of(evento));
@@ -59,12 +95,13 @@ class EventoControllerTest {
         sessao.setAttribute("usuarioEmail", "outra@example.com");
 
         String resultado = controller.atualizarEvento(
-                7L, "Nome alterado", "Outro local", "Cultura", "2026-12-01", "20:30",
-                "Descrição alterada", null, null, sessao, new RedirectAttributesModelMap());
+                7L, "Nome alterado", "Outro local", "Cultura", "2026-12-01", "20:30", "",
+                "Descrição alterada", null, false, null, null, null, null, null, sessao,
+                new RedirectAttributesModelMap());
 
         assertEquals("redirect:/mural", resultado);
         assertEquals("Evento original", evento.getNome());
-        verify(imagens, never()).salvar(any());
+        verify(imagens, never()).salvarEvento(any(), any(), org.mockito.ArgumentMatchers.anyBoolean());
         verify(eventos, never()).save(any(Evento.class));
     }
 
@@ -73,22 +110,53 @@ class EventoControllerTest {
         Evento evento = criarEvento();
         evento.adicionarImagem("/uploads/eventos/antiga.png");
         when(eventos.findById(7L)).thenReturn(Optional.of(evento));
-        when(imagens.salvar(any())).thenReturn(List.of("/uploads/eventos/nova.png"));
+        when(imagens.salvarEvento(any(), any(), org.mockito.ArgumentMatchers.anyBoolean()))
+                .thenReturn(new ImagemEventoService.ImagensEvento(null, List.of("/uploads/eventos/nova.png")));
         MockHttpSession sessao = new MockHttpSession();
         sessao.setAttribute("usuarioEmail", "CRIADOR@example.com");
 
         String resultado = controller.atualizarEvento(
-                7L, "Novo nome", "Novo local", "Cultura", "2026-12-01", "20:30",
-                "Nova descrição", 25, null, sessao, new RedirectAttributesModelMap());
+                7L, "Novo nome", "Novo local", "Cultura", "2026-12-01", "20:30", "2026-12-03",
+                "Nova descrição", 25, true, "49.90", null, null, null, null, sessao,
+                new RedirectAttributesModelMap());
 
         assertEquals("redirect:/mural", resultado);
         assertEquals("Novo nome", evento.getNome());
         assertEquals("Novo local", evento.getEndereco());
         assertEquals("Cultura", evento.getCategoria());
         assertEquals(LocalDateTime.of(2026, 12, 1, 20, 30), evento.getDataHora());
+        assertEquals(java.time.LocalDate.of(2026, 12, 3), evento.getDataFim());
+        assertEquals("01/12/2026 às 20:30 até 03/12/2026", evento.getDataHoraFormatada());
+        assertTrue(evento.isPago());
+        assertEquals(new java.math.BigDecimal("49.90"), evento.getValorIngresso());
         assertEquals("Nova descrição", evento.getDescricao());
         assertEquals(25, evento.getLimiteParticipantes());
         assertEquals(List.of("/uploads/eventos/nova.png"), evento.getImagens());
+        verify(eventos).save(evento);
+    }
+
+    @Test
+    void criadorPodeRemoverSomenteFotosExistentesDoEvento() throws Exception {
+        Evento evento = criarEvento();
+        evento.definirImagemCapa("/uploads/eventos/capa.png");
+        evento.adicionarImagem("/uploads/eventos/galeria-a.png");
+        evento.adicionarImagem("/uploads/eventos/galeria-b.png");
+        when(eventos.findById(7L)).thenReturn(Optional.of(evento));
+        when(imagens.salvarEvento(any(), any(), org.mockito.ArgumentMatchers.anyBoolean()))
+                .thenReturn(new ImagemEventoService.ImagensEvento(null, List.of()));
+        MockHttpSession sessao = new MockHttpSession();
+        sessao.setAttribute("usuarioEmail", "criador@example.com");
+
+        String resultado = controller.atualizarEvento(
+                7L, "Evento original", "Local original", "Geral", "2026-12-01", "19:00", "",
+                "Descrição original", null, false, null, null, null, null,
+                List.of("/uploads/eventos/galeria-a.png", "/uploads/eventos/alheia.png"), sessao,
+                new RedirectAttributesModelMap());
+
+        assertEquals("redirect:/mural", resultado);
+        assertEquals("/uploads/eventos/capa.png", evento.getImagemCapa());
+        assertEquals(List.of("/uploads/eventos/galeria-b.png"), evento.getImagensGaleria());
+        verify(imagens).remover(List.of("/uploads/eventos/galeria-a.png"));
         verify(eventos).save(evento);
     }
 
@@ -105,13 +173,14 @@ class EventoControllerTest {
         sessao.setAttribute("usuarioEmail", "criador@example.com");
 
         String resultado = controller.atualizarEvento(
-                7L, "Novo nome", "Novo local", "Cultura", "2026-12-01", "20:30",
-                "Descrição", 2, null, sessao, new RedirectAttributesModelMap());
+                7L, "Novo nome", "Novo local", "Cultura", "2026-12-01", "20:30", "",
+                "Descrição", 2, false, null, null, null, null, null, sessao,
+                new RedirectAttributesModelMap());
 
         assertEquals("redirect:/eventos/7/editar", resultado);
         assertEquals(5, evento.getLimiteParticipantes());
         assertEquals("Evento com limite", evento.getNome());
-        verify(imagens, never()).salvar(any());
+        verify(imagens, never()).salvarEvento(any(), any(), org.mockito.ArgumentMatchers.anyBoolean());
         verify(eventos, never()).save(any(Evento.class));
     }
 
@@ -168,22 +237,22 @@ class EventoControllerTest {
     }
 
     @Test
-    void mostraVagasRestantesQuandoFaltamTrintaOuMenos() {
+    void mostraVagasRestantesQuandoOEventoAtingeNoventaPorCentoDaLotacao() {
         Evento evento = criarEventoComLimite(200);
-        for (long id = 1; id <= 170; id++) {
+        for (long id = 1; id <= 180; id++) {
             Usuario inscrito = mock(Usuario.class);
             when(inscrito.getId()).thenReturn(id);
             evento.getParticipantes().add(inscrito);
         }
 
         assertEquals(true, evento.deveMostrarVagasRestantes());
-        assertEquals("Restam 30 vagas.", evento.getMensagemVagasRestantes());
+        assertEquals("Restam 20 vagas.", evento.getMensagemVagasRestantes());
     }
 
     @Test
-    void naoMostraAvisoDeVagasRestantesQuandoHaMaisDeTrinta() {
+    void naoMostraAvisoDeVagasRestantesAntesDeNoventaPorCentoDaLotacao() {
         Evento evento = criarEventoComLimite(200);
-        for (long id = 1; id <= 169; id++) {
+        for (long id = 1; id <= 179; id++) {
             Usuario inscrito = mock(Usuario.class);
             when(inscrito.getId()).thenReturn(id);
             evento.getParticipantes().add(inscrito);

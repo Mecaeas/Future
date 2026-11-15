@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SAC - MWK Eventos</title>
+    <link rel="stylesheet" href="/estilo.css">
+</head>
+<body class="pagina-sac">
+    <header>
+        <a class="brand" href="/">MWK Eventos</a>
+        <a href="/mural">Voltar ao mural</a>
+    </header>
+    <main>
+        <section class="sac-intro">
+            <p class="eyebrow">Atendimento</p>
+            <h1>Como podemos ajudar?</h1>
+            <p>Entre em contato com a equipe MWK Eventos ou envie sua sugestão.</p>
+        </section>
+
+        <section class="sac-contatos" aria-label="Canais de contato">
+            <article id="feedback" class="sac-card">
+                <h2>Fale com a equipe</h2>
+                <p>Estamos disponíveis para dúvidas, suporte e informações.</p>
+                <a class="sac-contato" href="mailto:micaiasvinagre008@gmail.com">micaiasvinagre008@gmail.com</a>
+                <a class="sac-contato" href="tel:+5535974006154">(35) 97400-6154</a>
+                <a class="button" href="mailto:micaiasvinagre008@gmail.com?subject=D%C3%BAvida%20-%20MWK%20Eventos">Tirar dúvidas</a>
+            </article>
+
+            <article class="sac-card">
+                <h2>Envie seu feedback</h2>
+                <p>Conte para nós o que podemos melhorar. O envio abrirá seu aplicativo de e-mail.</p>
+                <form id="feedbackForm" class="feedback-form">
+                    <div class="campo">
+                        <label for="feedbackNome">Seu nome</label>
+                        <input id="feedbackNome" name="nome" type="text" maxlength="100" autocomplete="name" required>
+                    </div>
+                    <div class="campo">
+                        <label for="feedbackTipo">Tipo de feedback</label>
+                        <select id="feedbackTipo" name="tipo" required>
+                            <option value="Sugestão">Sugestão</option>
+                            <option value="Elogio">Elogio</option>
+                            <option value="Problema">Problema</option>
+                            <option value="Outro">Outro</option>
+                        </select>
+                    </div>
+                    <div class="campo">
+                        <label for="feedbackMensagem">Mensagem</label>
+                        <textarea id="feedbackMensagem" name="mensagem" rows="5" maxlength="2000" required></textarea>
+                    </div>
+                    <button class="button" type="submit">Enviar feedback</button>
+                </form>
+                <p id="feedbackStatus" class="feedback-status" role="status" hidden></p>
+            </article>
+        </section>
+
+        <section id="duvidas" class="sac-duvidas" aria-labelledby="duvidasTitulo">
+            <h2 id="duvidasTitulo">Dúvidas frequentes</h2>
+            <details>
+                <summary>Como faço para participar de um evento?</summary>
+                <p>Abra “Mais detalhes” no evento e confirme sua presença ou solicite o ingresso. Você pode cancelar sua presença na mesma página.</p>
+            </details>
+            <details>
+                <summary>Como publico ou edito um evento?</summary>
+                <p>Entre na sua conta, publique pelo mural e use “Editar evento” para atualizar um evento que você criou.</p>
+            </details>
+            <details>
+                <summary>Como falo diretamente com o suporte?</summary>
+                <p>Envie um e-mail para <a href="mailto:micaiasvinagre008@gmail.com">micaiasvinagre008@gmail.com</a> ou ligue para <a href="tel:+5535974006154">(35) 97400-6154</a>.</p>
+            </details>
+        </section>
+    </main>
+    <div th:replace="~{fragments/rodape :: atendimento}"></div>
+    <script>
+        const feedbackForm = document.getElementById("feedbackForm");
+        const feedbackStatus = document.getElementById("feedbackStatus");
+
+        feedbackForm.addEventListener("submit", event => {
+            event.preventDefault();
+            const dados = new FormData(feedbackForm);
+            const assunto = `Feedback MWK Eventos - ${dados.get("tipo")}`;
+            const mensagem = `Nome: ${dados.get("nome")}\nTipo: ${dados.get("tipo")}\n\n${dados.get("mensagem")}`;
+            const linkEmail = `mailto:micaiasvinagre008@gmail.com?subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent(mensagem)}`;
+            window.location.href = linkEmail;
+            feedbackStatus.textContent = "Seu aplicativo de e-mail deve abrir com o feedback preenchido.";
+            feedbackStatus.hidden = false;
+        });
+    </script>
+</body>
+</html>

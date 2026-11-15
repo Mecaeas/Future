@@ -12,9 +12,14 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OrderColumn;
 
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.math.BigDecimal;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
 
 @Entity
 public class Evento {
@@ -37,14 +42,29 @@ public class Evento {
     @Column(nullable = false)
     private LocalDateTime dataHora;
 
+    @Column
+    private LocalDate dataFim;
+
+    @Column
+    private Boolean pago;
+
+    @Column(precision = 10, scale = 2)
+    private BigDecimal valorIngresso;
+
     @Column(length = 2000)
     private String descricao;
+
+    @Column(length = 500)
+    private String informacaoOrganizador;
 
     @Column(nullable = false)
     private String criadoPorEmail;
 
     @Column
     private Integer limiteParticipantes;
+
+    @Column(length = 255)
+    private String imagemCapa;
 
     @ElementCollection
     @CollectionTable(name = "evento_imagens", joinColumns = @JoinColumn(name = "evento_id"))
@@ -61,10 +81,26 @@ public class Evento {
 
     public Evento(String nome, String endereco, String categoria, LocalDateTime dataHora,
                   String descricao, String criadoPorEmail, Integer limiteParticipantes) {
+        this(nome, endereco, categoria, dataHora, descricao, criadoPorEmail, limiteParticipantes, null);
+    }
+
+    public Evento(String nome, String endereco, String categoria, LocalDateTime dataHora,
+                  String descricao, String criadoPorEmail, Integer limiteParticipantes,
+                  LocalDate dataFim) {
+        this(nome, endereco, categoria, dataHora, descricao, criadoPorEmail, limiteParticipantes,
+                dataFim, false, null);
+    }
+
+    public Evento(String nome, String endereco, String categoria, LocalDateTime dataHora,
+                  String descricao, String criadoPorEmail, Integer limiteParticipantes,
+                  LocalDate dataFim, boolean pago, BigDecimal valorIngresso) {
         this.nome = nome;
         this.endereco = endereco;
         this.categoria = categoria;
         this.dataHora = dataHora;
+        this.dataFim = dataFim;
+        this.pago = pago;
+        this.valorIngresso = valorIngresso;
         this.descricao = descricao;
         this.criadoPorEmail = criadoPorEmail;
         this.limiteParticipantes = limiteParticipantes;
@@ -75,11 +111,57 @@ public class Evento {
     public String getEndereco() { return endereco; }
     public String getCategoria() { return categoria; }
     public LocalDateTime getDataHora() { return dataHora; }
-    public String getDataHoraFormatada() { return dataHora.format(FORMATO_DATA); }
+    public LocalDate getDataFim() { return dataFim; }
+    public boolean isPago() { return Boolean.TRUE.equals(pago); }
+    public BigDecimal getValorIngresso() { return valorIngresso; }
+    public String getValorIngressoFormatado() {
+        return valorIngresso == null ? "" : NumberFormat.getCurrencyInstance(new Locale("pt", "BR"))
+                .format(valorIngresso);
+    }
+    public String getDataHoraFormatada() {
+        String inicio = dataHora.format(FORMATO_DATA);
+        return dataFim == null
+                ? inicio
+                : inicio + " até " + dataFim.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+    }
+    public String getDataHoraMuralFormatada() {
+        if (dataFim == null) {
+            return getDataHoraFormatada();
+        }
+        return dataHora.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                + " até " + dataFim.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                + " às " + dataHora.format(DateTimeFormatter.ofPattern("HH:mm"));
+    }
     public String getDescricao() { return descricao; }
+    public String getInformacaoOrganizador() { return informacaoOrganizador; }
     public String getCriadoPorEmail() { return criadoPorEmail; }
     public Integer getLimiteParticipantes() { return limiteParticipantes; }
     public List<String> getImagens() { return imagens; }
+    public String getImagemCapa() {
+        return imagemCapa != null ? imagemCapa : imagens.isEmpty() ? null : imagens.get(0);
+    }
+    public List<String> getImagensGaleria() {
+        String caminhoCapa = getImagemCapa();
+        int primeiraFotoGaleria = imagemCapa == null && !imagens.isEmpty() ? 1 : 0;
+        List<String> galeria = new ArrayList<>();
+        for (int indice = primeiraFotoGaleria; indice < imagens.size(); indice++) {
+            String caminho = imagens.get(indice);
+            if (!Objects.equals(caminhoCapa, caminho)) {
+                galeria.add(caminho);
+            }
+        }
+        return galeria;
+    }
+    public List<String> getTodosCaminhosImagens() {
+        List<String> caminhos = new ArrayList<>();
+        if (imagemCapa != null) {
+            caminhos.add(imagemCapa);
+        } else if (!imagens.isEmpty()) {
+            caminhos.add(imagens.get(0));
+        }
+        caminhos.addAll(getImagensGaleria());
+        return caminhos;
+    }
 
     public boolean foiCriadoPor(String email) {
         return email != null
@@ -88,13 +170,38 @@ public class Evento {
     }
 
     public void atualizar(String nome, String endereco, String categoria, LocalDateTime dataHora,
-                          String descricao, Integer limiteParticipantes) {
+                          LocalDate dataFim, String descricao, Integer limiteParticipantes) {
+        atualizar(nome, endereco, categoria, dataHora, dataFim, descricao, limiteParticipantes, false, null);
+    }
+
+    public void atualizar(String nome, String endereco, String categoria, LocalDateTime dataHora,
+                          LocalDate dataFim, String descricao, Integer limiteParticipantes,
+                          boolean pago, BigDecimal valorIngresso) {
+        atualizar(nome, endereco, categoria, dataHora, dataFim, descricao,
+                limiteParticipantes, pago, valorIngresso, informacaoOrganizador);
+    }
+
+    public void atualizar(String nome, String endereco, String categoria, LocalDateTime dataHora,
+                          LocalDate dataFim, String descricao, Integer limiteParticipantes,
+                          boolean pago, BigDecimal valorIngresso, String informacaoOrganizador) {
         this.nome = nome;
         this.endereco = endereco;
         this.categoria = categoria;
         this.dataHora = dataHora;
+        this.dataFim = dataFim;
+        this.pago = pago;
+        this.valorIngresso = valorIngresso;
         this.descricao = descricao;
+        this.informacaoOrganizador = informacaoOrganizador;
         this.limiteParticipantes = limiteParticipantes;
+    }
+
+    public void definirImagemCapa(String caminho) {
+        this.imagemCapa = caminho;
+    }
+
+    public void definirInformacaoOrganizador(String informacaoOrganizador) {
+        this.informacaoOrganizador = informacaoOrganizador;
     }
 
     public void adicionarImagem(String caminho) {
@@ -144,11 +251,12 @@ public class Evento {
     }
 
     public boolean deveMostrarVagasRestantes() {
-        return limiteParticipantes != null && getVagasRestantes() <= 30;
+        return limiteParticipantes != null
+                && getQuantidadeParticipantes() >= Math.ceil(limiteParticipantes * 0.9);
     }
 
     public String getMensagemVagasRestantes() {
-        if (limiteParticipantes == null) {
+        if (!deveMostrarVagasRestantes()) {
             return "";
         }
 

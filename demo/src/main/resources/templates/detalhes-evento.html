@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="|${evento.nome} - MWK Eventos|">Detalhes do evento - MWK Eventos</title>
+    <link rel="stylesheet" href="/estilo.css">
+</head>
+<body class="pagina-detalhe-evento">
+    <header>
+        <a class="brand" href="/mural">MWK Eventos</a>
+        <nav>
+            <a th:if="${usuarioNome != null}" href="/meus-eventos">Meus eventos</a>
+            <a href="/mural">Voltar ao mural</a>
+        </nav>
+    </header>
+    <main>
+        <a class="voltar-evento" href="/mural">← Voltar aos eventos</a>
+        <article class="detalhe-card">
+            <div class="detalhe-capa" th:if="${evento.imagemCapa != null}">
+                <img th:src="${evento.imagemCapa}" th:alt="|Foto de capa do evento ${evento.nome}|">
+            </div>
+            <div class="detalhe-sem-imagem"
+                 th:if="${evento.imagemCapa == null and #lists.isEmpty(evento.imagensGaleria)}">MWK Eventos</div>
+            <div class="detalhe-conteudo">
+                <div class="detalhe-meta">
+                    <span class="category" th:text="${evento.categoria == 'Musica' ? 'Música' : evento.categoria}">Categoria</span>
+                </div>
+                <h1 th:text="${evento.nome}">Nome do evento</h1>
+                <section class="detalhe-secao">
+                    <h2>Sobre o evento</h2>
+                    <p th:if="${evento.descricao != null and !#strings.isEmpty(evento.descricao)}"
+                       th:text="${evento.descricao}">Descrição detalhada do evento.</p>
+                    <p th:unless="${evento.descricao != null and !#strings.isEmpty(evento.descricao)}">
+                        O produtor ainda não adicionou uma descrição para este evento.
+                    </p>
+                </section>
+                <section class="detalhe-secao">
+                    <h2>Local</h2>
+                    <p th:text="${evento.endereco}">Endereço do evento</p>
+                    <p th:text="${evento.dataHoraFormatada}">Data e hora do evento</p>
+                    <a class="link-mapa" th:href="${mapaUrl}" target="_blank" rel="noopener noreferrer">Abrir endereço no Google Maps ↗</a>
+                </section>
+                <section class="detalhe-galeria" th:if="${!#lists.isEmpty(evento.imagensGaleria)}"
+                         aria-labelledby="tituloGaleria">
+                    <h2 id="tituloGaleria">Fotos do evento</h2>
+                    <div class="galeria-carrossel" role="region" aria-roledescription="carrossel"
+                         aria-label="Galeria de fotos do evento">
+                        <div class="galeria-slide" th:each="imagem, status : ${evento.imagensGaleria}"
+                             th:attr="hidden=${!status.first}">
+                            <img th:src="${imagem}" th:alt="|Imagem ${status.count} do evento ${evento.nome}|">
+                        </div>
+                        <button class="galeria-seta galeria-anterior" type="button" data-galeria-anterior
+                                aria-label="Foto anterior" th:if="${#lists.size(evento.imagensGaleria) > 1}">‹</button>
+                        <button class="galeria-seta galeria-proxima" type="button" data-galeria-proxima
+                                aria-label="Próxima foto" th:if="${#lists.size(evento.imagensGaleria) > 1}">›</button>
+                        <p class="galeria-contador" aria-live="polite">
+                            <span data-galeria-contador
+                                  th:text="|1 de ${#lists.size(evento.imagensGaleria)}|">1 de 1</span>
+                        </p>
+                    </div>
+                </section>
+                <section class="detalhe-secao">
+                    <h2>Produtor do evento</h2>
+                    <p th:text="${produtor != null and produtor.nome != null ? produtor.nome : evento.criadoPorEmail}">Nome do produtor</p>
+                    <a th:href="|mailto:${evento.criadoPorEmail}|" th:text="${evento.criadoPorEmail}">E-mail do produtor</a>
+                    <p th:if="${evento.informacaoOrganizador != null and !#strings.isEmpty(evento.informacaoOrganizador)}"
+                       th:text="${evento.informacaoOrganizador}">Informações sobre a empresa ou organização.</p>
+                </section>
+                <section class="detalhe-secao">
+                    <h2>Ingresso</h2>
+                    <p class="preco-evento" th:classappend="${!evento.pago ? ' preco-gratuito' : ''}"
+                       th:text="${evento.pago ? evento.valorIngressoFormatado : 'Esse é um evento gratuito'}">Esse é um evento gratuito</p>
+                    <p class="aviso-pagamento" th:if="${evento.pago}">
+                        A compra é simulada nesta versão: nenhum pagamento real será cobrado.
+                    </p>
+                </section>
+                <section class="detalhe-secao disponibilidade-evento">
+                    <h2>Disponibilidade</h2>
+                    <p th:text="${evento.resumoParticipantes}">0 pessoas confirmadas</p>
+                    <p th:if="${evento.limiteParticipantes != null}"
+                       th:text="|${evento.vagasRestantes} vagas restantes de ${evento.limiteParticipantes}|">Vagas restantes</p>
+                </section>
+                <div class="detalhe-acoes">
+                    <form th:if="${session.usuarioLogado != null and evento.isParticipante(session.usuarioLogado)}"
+                          th:action="@{/participar/{id}(id=${evento.id})}" method="post">
+                        <button class="button secondary" type="submit">Cancelar presença</button>
+                    </form>
+                    <form th:if="${session.usuarioLogado != null and !evento.isParticipante(session.usuarioLogado) and evento.temVagasDisponiveis}"
+                          th:action="@{/participar/{id}(id=${evento.id})}" method="post">
+                        <button class="button" type="submit"
+                                th:text="${evento.pago ? 'Comprar ingresso (simulação)' : 'Confirmar presença'}">Confirmar presença</button>
+                    </form>
+                    <a class="button" th:if="${session.usuarioLogado == null and evento.temVagasDisponiveis}"
+                       href="/login" th:text="${evento.pago ? 'Entrar para solicitar ingresso' : 'Entrar para confirmar presença'}">
+                        Entrar para participar
+                    </a>
+                    <p class="vagas-esgotadas" th:if="${evento.isLotacaoEsgotada() and !evento.isParticipante(session.usuarioLogado)}">
+                        Evento lotado
+                    </p>
+                    <a class="button secondary" th:if="${evento.foiCriadoPor(session.usuarioEmail)}"
+                       th:href="@{/eventos/{id}/editar(id=${evento.id})}">Editar evento</a>
+                </div>
+            </div>
+        </article>
+    </main>
+    <div th:replace="~{fragments/rodape :: atendimento}"></div>
+    <script>
+        document.querySelectorAll(".galeria-carrossel").forEach((galeria) => {
+            const fotos = Array.from(galeria.querySelectorAll(".galeria-slide"));
+            const contador = galeria.querySelector("[data-galeria-contador]");
+            let fotoAtual = 0;
+
+            const mostrarFoto = (indice) => {
+                fotoAtual = (indice + fotos.length) % fotos.length;
+                fotos.forEach((foto, posicao) => {
+                    foto.hidden = posicao !== fotoAtual;
+                });
+                contador.textContent = `${fotoAtual + 1} de ${fotos.length}`;
+            };
+
+            const anterior = galeria.querySelector("[data-galeria-anterior]");
+            const proxima = galeria.querySelector("[data-galeria-proxima]");
+            if (anterior) anterior.addEventListener("click", () => {
+                mostrarFoto(fotoAtual - 1);
+            });
+            if (proxima) proxima.addEventListener("click", () => {
+                mostrarFoto(fotoAtual + 1);
+            });
+        });
+    </script>
+</body>
+</html>

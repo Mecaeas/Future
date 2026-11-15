@@ -25,8 +25,9 @@
                 </div>
 
                 <div class="campo">
-                    <label for="endereco">Local</label>
-                    <input id="endereco" name="endereco" type="text" maxlength="200" th:value="${evento.endereco}" required>
+                    <label for="endereco">Endereço completo</label>
+                    <input id="endereco" name="endereco" type="text" maxlength="200"
+                           placeholder="Rua, número, bairro e cidade" th:value="${evento.endereco}" required>
                 </div>
 
                 <div class="campo">
@@ -36,33 +37,71 @@
                         <option value="Esporte" th:selected="${evento.categoria == 'Esporte'}">Esporte</option>
                         <option value="Cultura" th:selected="${evento.categoria == 'Cultura'}">Cultura</option>
                         <option value="Tecnologia" th:selected="${evento.categoria == 'Tecnologia'}">Tecnologia</option>
+                        <option value="Educação" th:selected="${evento.categoria == 'Educação'}">Educação</option>
                         <option value="Geral" th:selected="${evento.categoria == 'Geral'}">Geral</option>
                     </select>
                 </div>
 
                 <div class="campo">
-                    <label>Imagens atuais</label>
-                    <div class="imagens-atuais" th:if="${!#lists.isEmpty(evento.imagens)}">
-                        <img th:each="imagem, status : ${evento.imagens}" th:src="${imagem}"
-                             th:alt="|Imagem atual ${status.count} do evento|">
+                    <label for="capa">Foto de capa</label>
+                    <div class="imagens-atuais" th:if="${evento.imagemCapa != null}">
+                        <div class="imagem-atual-item" data-imagem-atual>
+                            <img th:src="${evento.imagemCapa}" th:alt="|Foto de capa atual do evento ${evento.nome}|">
+                            <input class="imagem-remover-flag" type="checkbox" name="imagensRemovidas"
+                                   th:value="${evento.imagemCapa}" hidden>
+                            <button class="imagem-remover" type="button" data-marcar-remocao
+                                    th:aria-label="|Excluir foto de capa do evento ${evento.nome}|">🗑</button>
+                            <span class="imagem-exclusao-aviso">Será removida ao salvar</span>
+                        </div>
                     </div>
-                    <p class="ajuda">Se selecionar novas imagens, elas substituirão as atuais. Sem selecionar imagens, as atuais serão mantidas.</p>
-                    <label for="imagens">Adicionar imagens novas</label>
-                    <input class="arquivo-input" id="imagens" name="imagens" type="file" accept="image/jpeg,image/png,image/gif" multiple aria-describedby="ajudaImagens nomesImagens">
+                    <input class="arquivo-input seletor-imagem-evento" id="capa" name="capa" type="file"
+                           accept="image/jpeg,image/png,image/gif" data-preview-id="previewCapa" data-nomes-id="nomeCapa"
+                           aria-describedby="ajudaCapa nomeCapa">
                     <div class="arquivo-controles">
-                        <label class="arquivo-botao" for="imagens">Selecionar imagens</label>
-                        <span id="nomesImagens" class="arquivo-nomes" aria-live="polite">Nenhuma imagem selecionada</span>
+                        <label class="arquivo-botao" for="capa">Trocar foto de capa</label>
+                        <span id="nomeCapa" class="arquivo-nomes" aria-live="polite">Nenhuma nova foto selecionada</span>
                     </div>
-                    <p id="ajudaImagens" class="ajuda">Envie até 5 imagens JPG, PNG ou GIF, com no máximo 5 MB cada.</p>
+                    <p id="ajudaCapa" class="ajuda">A capa atual será mantida se não selecionar outra. JPG, PNG ou GIF de até 5 MB.</p>
+                    <div id="previewCapa" class="previews" aria-live="polite"></div>
+                </div>
+
+                <div class="campo">
+                    <label for="imagens">Fotos do evento</label>
+                    <div class="imagens-atuais" th:if="${!#lists.isEmpty(evento.imagensGaleria)}">
+                        <div class="imagem-atual-item" data-imagem-atual
+                             th:each="imagem, status : ${evento.imagensGaleria}">
+                            <img th:src="${imagem}" th:alt="|Foto ${status.count} do evento ${evento.nome}|">
+                            <input class="imagem-remover-flag" type="checkbox" name="imagensRemovidas"
+                                   th:value="${imagem}" hidden>
+                            <button class="imagem-remover" type="button" data-marcar-remocao
+                                    th:aria-label="|Excluir foto ${status.count} do evento ${evento.nome}|">🗑</button>
+                            <span class="imagem-exclusao-aviso">Será removida ao salvar</span>
+                        </div>
+                    </div>
+                    <input class="arquivo-input seletor-imagem-evento" id="imagens" name="imagens" type="file"
+                           accept="image/jpeg,image/png,image/gif" multiple data-preview-id="previews"
+                           data-nomes-id="nomesImagens" aria-describedby="ajudaImagens nomesImagens">
+                    <div class="arquivo-controles">
+                        <label class="arquivo-botao" for="imagens">Selecionar fotos do evento</label>
+                        <span id="nomesImagens" class="arquivo-nomes" aria-live="polite">Nenhuma nova foto selecionada</span>
+                    </div>
+                    <p id="ajudaImagens" class="ajuda">Ao enviar fotos novas, elas substituirão a galeria atual. Para remover apenas algumas fotos, marque-as e não selecione imagens novas. Até 5 arquivos JPG, PNG ou GIF de 5 MB.</p>
                     <div id="previews" class="previews" aria-live="polite"></div>
                 </div>
 
                 <div class="data-hora">
                     <div class="campo">
-                        <label for="data">Data</label>
+                        <label for="data">Data inicial</label>
                         <input id="data" name="data" type="date" th:value="${#temporals.format(evento.dataHora, 'yyyy-MM-dd')}" required>
                     </div>
                     <div class="campo">
+                        <label for="dataFim">Data final (opcional)</label>
+                        <input id="dataFim" name="dataFim" type="date"
+                               th:value="${evento.dataFim != null ? #temporals.format(evento.dataFim, 'yyyy-MM-dd') : ''}"
+                               th:min="${#temporals.format(evento.dataHora, 'yyyy-MM-dd')}" aria-describedby="ajudaDataFim">
+                        <p id="ajudaDataFim" class="ajuda">Preencha apenas se o evento durar mais de um dia.</p>
+                    </div>
+                    <div class="campo campo-horario">
                         <label for="hora">Horário</label>
                         <input id="hora" name="hora" type="time" th:value="${#temporals.format(evento.dataHora, 'HH:mm')}" required>
                     </div>
@@ -76,7 +115,28 @@
                 </div>
 
                 <div class="campo">
-                    <label for="descricao">Descrição</label>
+                    <label class="opcao-checkbox" for="pago">
+                        <input id="pago" name="pago" type="checkbox" value="true" th:checked="${evento.pago}">
+                        Evento pago
+                    </label>
+                </div>
+                <div class="campo" id="campoValorIngresso">
+                    <label for="valorIngresso">Valor do ingresso (R$)</label>
+                    <input id="valorIngresso" name="valorIngresso" type="number" min="0.01" step="0.01" inputmode="decimal"
+                           th:value="${evento.valorIngresso}" th:disabled="${!evento.pago}" th:required="${evento.pago}"
+                           aria-describedby="ajudaValorIngresso">
+                    <p id="ajudaValorIngresso" class="ajuda">Selecione “Evento pago” para informar o valor.</p>
+                </div>
+
+                <div class="campo">
+                    <label for="informacaoOrganizador">Informações sobre a empresa/organizador (opcional)</label>
+                    <textarea id="informacaoOrganizador" name="informacaoOrganizador" maxlength="500"
+                              aria-describedby="ajudaOrganizador" th:text="${evento.informacaoOrganizador}"></textarea>
+                    <p id="ajudaOrganizador" class="ajuda">Conte aos participantes sobre a organização responsável pelo evento.</p>
+                </div>
+
+                <div class="campo">
+                    <label for="descricao">Descrição detalhada do evento</label>
                     <textarea id="descricao" name="descricao" maxlength="2000" th:text="${evento.descricao}"></textarea>
                 </div>
 
@@ -89,42 +149,23 @@
     </main>
 
     <script>
-        const seletorImagens = document.getElementById("imagens");
-        const previews = document.getElementById("previews");
-        const nomesImagens = document.getElementById("nomesImagens");
-        let urlsPreviews = [];
-
-        seletorImagens.addEventListener("change", () => {
-            urlsPreviews.forEach(URL.revokeObjectURL);
-            urlsPreviews = [];
-            previews.replaceChildren();
-
-            const arquivos = Array.from(seletorImagens.files);
-            nomesImagens.textContent = arquivos.length
-                ? arquivos.map(arquivo => arquivo.name).join(", ")
-                : "Nenhuma imagem selecionada";
-
-            const arquivoInvalido = arquivos.find(arquivo =>
-                !["image/jpeg", "image/png", "image/gif"].includes(arquivo.type) || arquivo.size > 5 * 1024 * 1024
-            );
-
-            if (arquivos.length > 5) {
-                seletorImagens.setCustomValidity("Selecione no máximo 5 imagens.");
-            } else if (arquivoInvalido) {
-                seletorImagens.setCustomValidity("Use JPG, PNG ou GIF de até 5 MB cada.");
-            } else {
-                seletorImagens.setCustomValidity("");
-            }
-
-            arquivos.filter(arquivo => arquivo.type.startsWith("image/")).forEach(arquivo => {
-                const url = URL.createObjectURL(arquivo);
-                urlsPreviews.push(url);
-                const imagem = document.createElement("img");
-                imagem.src = url;
-                imagem.alt = arquivo.name;
-                previews.append(imagem);
-            });
+        const eventoPago = document.getElementById("pago");
+        const valorIngresso = document.getElementById("valorIngresso");
+        eventoPago.addEventListener("change", () => {
+            valorIngresso.disabled = !eventoPago.checked;
+            valorIngresso.required = eventoPago.checked;
         });
+
+        const dataInicial = document.getElementById("data");
+        const dataFinal = document.getElementById("dataFim");
+        dataInicial.addEventListener("change", () => {
+            dataFinal.min = dataInicial.value;
+            if (dataFinal.value && dataFinal.value < dataInicial.value) {
+                dataFinal.value = "";
+            }
+        });
+
     </script>
+    <script src="/evento-imagens.js"></script>
 </body>
 </html>

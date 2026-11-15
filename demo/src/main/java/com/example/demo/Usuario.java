@@ -25,6 +25,9 @@ public abstract class Usuario {
     @Column(unique = true)
     private String email;
 
+    @Column(length = 14)
+    private String cpf;
+
     private String senha;
 
     public Usuario() {}
@@ -44,6 +47,9 @@ public abstract class Usuario {
 
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
+
+    public String getCpf() { return cpf; }
+    public void setCpf(String cpf) { this.cpf = cpf; }
 
     public String getSenha() { return senha; }
     public void setSenha(String senha) { this.senha = senha; }

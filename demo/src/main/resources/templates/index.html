@@ -15,7 +15,7 @@
                 <span class="profile-icon" aria-hidden="true"></span>
                 <span>Perfil</span>
             </a>
-            <a class="button" th:if="${usuarioNome != null}" href="/eventos/novo">Criar novo evento</a>
+            <a class="profile-link" th:if="${usuarioNome != null}" href="/meus-eventos">Meus eventos</a>
             <a class="login-link" th:unless="${usuarioNome != null}" href="/login">Entrar para criar evento</a>
         </nav>
     </header>
@@ -37,6 +37,7 @@
                         <option value="esporte">Esporte</option>
                         <option value="cultura">Cultura</option>
                         <option value="tecnologia">Tecnologia</option>
+                        <option value="educacao">Educação</option>
                         <option value="geral">Geral</option>
                     </select>
                 </div>
@@ -49,56 +50,83 @@
              <p>Os próximos eventos publicados aparecerão aqui.</p>
         </section>
         <p class="erro" th:if="${erroMural != null}" th:text="${erroMural}" role="alert"></p>
-        <p class="mensagem-sucesso" th:if="${mensagemMural != null}" th:text="${mensagemMural}" role="status"></p>
+        <p class="mensagem-sucesso" th:if="${mensagemMural != null and sucessoInscricao == null}"
+           th:text="${mensagemMural}" role="status"></p>
+        <dialog class="confirmacao-modal" id="confirmacaoInscricao" th:if="${sucessoInscricao != null}">
+            <div class="confirmacao-conteudo">
+                <span class="confirmacao-icone" aria-hidden="true">✓</span>
+                <h2>Inscrição confirmada!</h2>
+                <p th:text="${mensagemMural}">Sucesso! Sua vaga foi confirmada.</p>
+                <p class="confirmacao-ajuda">Seu ingresso com QR Code já está em “Meus eventos”. O envio por e-mail ainda não está ativado.</p>
+                <a class="button" href="/meus-eventos">Ver meus eventos</a>
+                <button class="fechar-modal" type="button" id="fecharConfirmacao">Continuar no mural</button>
+            </div>
+        </dialog>
         <section class="event-list" th:unless="${#lists.isEmpty(eventos)}" aria-label="Eventos publicados">
-   <article class="event" th:each="evento : ${eventos}" th:attr="data-categoria=${#strings.toLowerCase(evento.categoria)}, data-event-id=${evento.id}">
-         <span class="category" th:text="${evento.categoria == 'Musica' ? 'Música' : evento.categoria}">Categoria</span>
-         <time class="date" th:text="${evento.dataHoraFormatada}">Data e hora</time>
-         <h2 th:text="${evento.nome}">Nome do evento</h2>
-         <p class="location" th:text="${evento.endereco}">Local</p>
-         <p th:if="${evento.descricao != null and !#strings.isEmpty(evento.descricao)}" th:text="${evento.descricao}">Descrição</p>
-
-         <!-- Exibição de imagens do evento -->
-         <div class="event-images" th:if="${!#lists.isEmpty(evento.imagens)}">
-             <img th:each="imagem, status : ${evento.imagens}" th:src="${imagem}" th:alt="|Imagem ${status.count} do evento ${evento.nome}|" loading="lazy">
-         </div>
-
-         <div class="event-toolbar" aria-label="Ações do evento">
-             <a class="event-action editar-evento" th:if="${evento.foiCriadoPor(session.usuarioEmail)}"
-                th:href="@{/eventos/{id}/editar(id=${evento.id})}">Editar evento</a>
-             <button type="button" class="event-action favorite-btn" th:data-event-id="${evento.id}" aria-pressed="false">
-                 <span aria-hidden="true">♡</span>
-                 <span class="event-action-label">Favoritar</span>
-             </button>
-             <button type="button" class="event-action share-btn" th:data-event-id="${evento.id}" th:data-event-name="${evento.nome}" th:data-share-url="${'/mural?evento=' + evento.id}">
-                 <span aria-hidden="true">↗</span>
-                 <span class="event-action-label">Compartilhar</span>
-             </button>
-         </div>
-
-         <div class="event-actions" style="grid-column: 1 / -1; margin-top: 12px;">
-         <p class="confirmados" th:text="${evento.resumoParticipantes}">0 pessoas confirmadas</p>
-            <p class="vagas-evento alerta-vagas" th:classappend="${evento.isLotacaoEsgotada()} ? ' alerta-lotado' : ''"
-                th:if="${evento.limiteParticipantes != null and evento.deveMostrarVagasRestantes()}" th:text="${evento.mensagemVagasRestantes}">Restam 12 vagas.</p>
-         <p class="vagas-evento alerta-vagas alerta-lotado" th:if="${evento.limiteParticipantes != null and evento.isLotacaoEsgotada()}" th:text="${evento.mensagemVagasRestantes}">Evento lotado.</p>
-            <p class="vagas-evento" th:if="${evento.limiteParticipantes != null and !evento.deveMostrarVagasRestantes()}"
-            th:text="|${evento.quantidadeParticipantes} de ${evento.limiteParticipantes} vagas preenchidas|">0 de 0 vagas preenchidas</p>
-         <form th:if="${session.usuarioLogado != null and (evento.temVagasDisponiveis or evento.isParticipante(session.usuarioLogado))}"
-               th:action="@{/participar/{id}(id=${evento.id})}" method="post">
-              <button type="submit" class="button" 
-                     th:classappend="${evento.isParticipante(session.usuarioLogado)} ? ' secondary' : ''"
-                     th:text="${evento.isParticipante(session.usuarioLogado)} ? 'Cancelar presença' : 'Garantir vaga'">
-                 Garantir vaga
-             </button>
-        </form>
-        <a th:if="${session.usuarioLogado == null and evento.temVagasDisponiveis}" href="/login" class="login-link">
-            Faça login para participar deste evento
-        </a>
-    </div>
-</article>    
+            <article class="event" th:each="evento : ${eventos}" th:attr="data-categoria=${#strings.toLowerCase(evento.categoria)}, data-event-id=${evento.id}">
+                <div class="event-media">
+                    <img th:if="${evento.imagemCapa != null}" th:src="${evento.imagemCapa}"
+                         th:alt="|Imagem do evento ${evento.nome}|" loading="lazy">
+                    <div class="event-no-image" th:if="${evento.imagemCapa == null}" aria-label="Evento sem imagem">
+                        <span>MWK Eventos</span>
+                    </div>
+                </div>
+                <div class="event-content">
+                    <div class="event-meta">
+                        <span class="category" th:text="${evento.categoria == 'Musica' ? 'Música' : evento.categoria}">Categoria</span>
+                    </div>
+                    <h2 th:text="${evento.nome}">Nome do evento</h2>
+                    <div class="event-logistics">
+                        <p class="location" th:text="${evento.endereco}">Local</p>
+                        <time class="date" th:text="${evento.dataHoraMuralFormatada}">Data e hora</time>
+                    </div>
+                    <p class="event-description" th:if="${evento.descricao != null and !#strings.isEmpty(evento.descricao)}"
+                       th:text="${evento.descricao}">Descrição do evento</p>
+                    <div class="event-status">
+                        <p class="ingressos-disponiveis">
+                            Ingressos disponíveis:
+                            <strong th:text="${evento.limiteParticipantes == null ? 'Ilimitado' : evento.vagasRestantes}">0</strong>
+                        </p>
+                        <p class="limite-pessoas">
+                            Limite de pessoas:
+                            <strong th:text="${evento.limiteParticipantes == null ? 'Ilimitado' : evento.limiteParticipantes}">0</strong>
+                        </p>
+                    </div>
+                    <div class="event-footer">
+                        <div class="event-toolbar" aria-label="Ações do evento">
+                            <a class="event-action editar-evento" th:if="${evento.foiCriadoPor(session.usuarioEmail)}"
+                               th:href="@{/eventos/{id}/editar(id=${evento.id})}">Editar evento</a>
+                            <form th:if="${evento.foiCriadoPor(session.usuarioEmail)}"
+                                  th:action="@{/eventos/{id}/excluir(id=${evento.id})}" method="post"
+                                  onsubmit="return confirm('Tem certeza de que deseja excluir este evento?');">
+                                <button type="submit" class="event-action excluir-evento">Excluir evento</button>
+                            </form>
+                            <button type="button" class="event-action favorite-btn" th:data-event-id="${evento.id}" aria-pressed="false">
+                                <span aria-hidden="true">♡</span>
+                                <span class="event-action-label">Favoritar</span>
+                            </button>
+                            <button type="button" class="event-action share-btn" th:data-event-id="${evento.id}"
+                                    th:data-event-name="${evento.nome}" th:data-share-url="${'/mural?evento=' + evento.id}">
+                                <span aria-hidden="true">↗</span>
+                                <span class="event-action-label">Compartilhar</span>
+                            </button>
+                        </div>
+                        <a class="button detalhes-button" th:href="@{/eventos/{id}(id=${evento.id})}">Mais detalhes</a>
+                    </div>
+                </div>
+            </article>
         </section>
         <p id="semResultados" class="sem-resultados" hidden>Nenhum evento corresponde à busca.</p>
     </main>
+    <div th:replace="~{fragments/rodape :: atendimento}"></div>
+    <script th:if="${sucessoInscricao != null}">
+        const modalConfirmacao = document.getElementById("confirmacaoInscricao");
+        modalConfirmacao.showModal();
+        document.getElementById("fecharConfirmacao").addEventListener("click", () => modalConfirmacao.close());
+        modalConfirmacao.addEventListener("click", evento => {
+            if (evento.target === modalConfirmacao) modalConfirmacao.close();
+        });
+    </script>
     <script>
         const buscaEvento = document.getElementById("buscaEvento");
         const categoriaEvento = document.getElementById("categoriaEvento");
