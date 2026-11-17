@@ -102,8 +102,13 @@
                         <p id="ajudaDataFim" class="ajuda">Preencha apenas se o evento durar mais de um dia.</p>
                     </div>
                     <div class="campo campo-horario">
-                        <label for="hora">Horário</label>
+                        <label for="hora">Horário de início</label>
                         <input id="hora" name="hora" type="time" th:value="${#temporals.format(evento.dataHora, 'HH:mm')}" required>
+                    </div>
+                    <div class="campo campo-horario">
+                        <label for="horaFim">Horário de término (opcional)</label>
+                        <input id="horaFim" name="horaFim" type="time"
+                               th:value="${evento.horaFim != null ? #temporals.format(evento.horaFim, 'HH:mm') : ''}">
                     </div>
                 </div>
 

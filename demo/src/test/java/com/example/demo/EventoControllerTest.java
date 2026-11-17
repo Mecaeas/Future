@@ -95,7 +95,7 @@ class EventoControllerTest {
         sessao.setAttribute("usuarioEmail", "outra@example.com");
 
         String resultado = controller.atualizarEvento(
-                7L, "Nome alterado", "Outro local", "Cultura", "2026-12-01", "20:30", "",
+                7L, "Nome alterado", "Outro local", "Cultura", "2026-12-01", "20:30", "", null,
                 "Descrição alterada", null, false, null, null, null, null, null, sessao,
                 new RedirectAttributesModelMap());
 
@@ -116,7 +116,7 @@ class EventoControllerTest {
         sessao.setAttribute("usuarioEmail", "CRIADOR@example.com");
 
         String resultado = controller.atualizarEvento(
-                7L, "Novo nome", "Novo local", "Cultura", "2026-12-01", "20:30", "2026-12-03",
+                7L, "Novo nome", "Novo local", "Cultura", "2026-12-01", "20:30", "2026-12-03", "22:00",
                 "Nova descrição", 25, true, "49.90", null, null, null, null, sessao,
                 new RedirectAttributesModelMap());
 
@@ -126,7 +126,8 @@ class EventoControllerTest {
         assertEquals("Cultura", evento.getCategoria());
         assertEquals(LocalDateTime.of(2026, 12, 1, 20, 30), evento.getDataHora());
         assertEquals(java.time.LocalDate.of(2026, 12, 3), evento.getDataFim());
-        assertEquals("01/12/2026 às 20:30 até 03/12/2026", evento.getDataHoraFormatada());
+        assertEquals(java.time.LocalTime.of(22, 0), evento.getHoraFim());
+        assertEquals("01/12/2026 às 20:30 até 03/12/2026 às 22:00", evento.getDataHoraFormatada());
         assertTrue(evento.isPago());
         assertEquals(new java.math.BigDecimal("49.90"), evento.getValorIngresso());
         assertEquals("Nova descrição", evento.getDescricao());
@@ -148,7 +149,7 @@ class EventoControllerTest {
         sessao.setAttribute("usuarioEmail", "criador@example.com");
 
         String resultado = controller.atualizarEvento(
-                7L, "Evento original", "Local original", "Geral", "2026-12-01", "19:00", "",
+                7L, "Evento original", "Local original", "Geral", "2026-12-01", "19:00", "", null,
                 "Descrição original", null, false, null, null, null, null,
                 List.of("/uploads/eventos/galeria-a.png", "/uploads/eventos/alheia.png"), sessao,
                 new RedirectAttributesModelMap());
@@ -173,7 +174,7 @@ class EventoControllerTest {
         sessao.setAttribute("usuarioEmail", "criador@example.com");
 
         String resultado = controller.atualizarEvento(
-                7L, "Novo nome", "Novo local", "Cultura", "2026-12-01", "20:30", "",
+                7L, "Novo nome", "Novo local", "Cultura", "2026-12-01", "20:30", "", null,
                 "Descrição", 2, false, null, null, null, null, null, sessao,
                 new RedirectAttributesModelMap());
 

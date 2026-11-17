@@ -183,7 +183,7 @@ public class UsuarioController {
         String docLimpo = (documento != null) ? documento.trim() : "";
         String cpfFormatado = CpfUtils.formatarSeValido(cpf);
         if (cpfFormatado == null) {
-            mensagens.addFlashAttribute("erroRegisto", "Informe um CPF válido com 11 dígitos.");
+            mensagens.addFlashAttribute("erroRegisto", "Informe 11 números para o CPF.");
             return "redirect:/registo";
         }
 
@@ -249,37 +249,7 @@ public class UsuarioController {
         }
 
         model.addAttribute("usuario", usuario);
-        Object erroCpf = session.getAttribute("erroCpf");
-        if (erroCpf != null) {
-            model.addAttribute("erroCpf", erroCpf);
-            session.removeAttribute("erroCpf");
-        }
         return "perfil";
-    }
-
-    @PostMapping("/perfil/cpf")
-    public String salvarCpf(@RequestParam(value = "cpf", required = false) String cpf, HttpSession session,
-                            RedirectAttributes mensagens) {
-        Usuario usuario = usuarioDaSessao(session);
-        if (usuario == null) {
-            session.invalidate();
-            return "redirect:/login";
-        }
-
-        String cpfFormatado = CpfUtils.formatarSeValido(cpf);
-        if (cpfFormatado == null) {
-            mensagens.addFlashAttribute("erroCpf", "Informe um CPF válido com 11 dígitos.");
-        } else {
-            usuario.setCpf(cpfFormatado);
-            repositorio.save(usuario);
-            Object ingressoPendente = session.getAttribute("ingressoPendenteCpf");
-            if (ingressoPendente instanceof String token && !token.isBlank()) {
-                session.removeAttribute("ingressoPendenteCpf");
-                return "redirect:/ingressos/" + token + "/baixar";
-            }
-            mensagens.addFlashAttribute("sucessoCpf", "CPF salvo. Agora você pode baixar seu ingresso.");
-        }
-        return "redirect:/perfil";
     }
 // Exemplo de atualização no UsuarioController.java
 

@@ -13,6 +13,7 @@ import jakarta.persistence.OrderColumn;
 
 import java.time.LocalDateTime;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
@@ -44,6 +45,9 @@ public class Evento {
 
     @Column
     private LocalDate dataFim;
+
+    @Column
+    private LocalTime horaFim;
 
     @Column
     private Boolean pago;
@@ -112,6 +116,7 @@ public class Evento {
     public String getCategoria() { return categoria; }
     public LocalDateTime getDataHora() { return dataHora; }
     public LocalDate getDataFim() { return dataFim; }
+    public LocalTime getHoraFim() { return horaFim; }
     public boolean isPago() { return Boolean.TRUE.equals(pago); }
     public BigDecimal getValorIngresso() { return valorIngresso; }
     public String getValorIngressoFormatado() {
@@ -120,13 +125,32 @@ public class Evento {
     }
     public String getDataHoraFormatada() {
         String inicio = dataHora.format(FORMATO_DATA);
+        if (horaFim != null) {
+            String termino = horaFim.format(DateTimeFormatter.ofPattern("HH:mm"));
+            if (dataFim != null) {
+                return inicio + " até " + dataFim.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                        + " às " + termino;
+            }
+            return inicio + " até " + termino;
+        }
         return dataFim == null
                 ? inicio
                 : inicio + " até " + dataFim.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
     }
     public String getDataHoraMuralFormatada() {
-        if (dataFim == null) {
+        if (dataFim == null && horaFim == null) {
             return getDataHoraFormatada();
+        }
+        String inicio = dataHora.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        String horarioInicio = dataHora.format(DateTimeFormatter.ofPattern("HH:mm"));
+        if (dataFim == null) {
+            return inicio + " das " + horarioInicio + " às "
+                    + horaFim.format(DateTimeFormatter.ofPattern("HH:mm"));
+        }
+        if (horaFim != null) {
+            return inicio + " até " + dataFim.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                    + " das " + horarioInicio + " às "
+                    + horaFim.format(DateTimeFormatter.ofPattern("HH:mm"));
         }
         return dataHora.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
                 + " até " + dataFim.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
@@ -184,11 +208,19 @@ public class Evento {
     public void atualizar(String nome, String endereco, String categoria, LocalDateTime dataHora,
                           LocalDate dataFim, String descricao, Integer limiteParticipantes,
                           boolean pago, BigDecimal valorIngresso, String informacaoOrganizador) {
+        atualizar(nome, endereco, categoria, dataHora, dataFim, null, descricao, limiteParticipantes,
+                pago, valorIngresso, informacaoOrganizador);
+    }
+
+    public void atualizar(String nome, String endereco, String categoria, LocalDateTime dataHora,
+                          LocalDate dataFim, LocalTime horaFim, String descricao, Integer limiteParticipantes,
+                          boolean pago, BigDecimal valorIngresso, String informacaoOrganizador) {
         this.nome = nome;
         this.endereco = endereco;
         this.categoria = categoria;
         this.dataHora = dataHora;
         this.dataFim = dataFim;
+        this.horaFim = horaFim;
         this.pago = pago;
         this.valorIngresso = valorIngresso;
         this.descricao = descricao;
@@ -198,6 +230,10 @@ public class Evento {
 
     public void definirImagemCapa(String caminho) {
         this.imagemCapa = caminho;
+    }
+
+    public void definirHoraFim(LocalTime horaFim) {
+        this.horaFim = horaFim;
     }
 
     public void definirInformacaoOrganizador(String informacaoOrganizador) {

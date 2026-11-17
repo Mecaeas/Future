@@ -640,7 +640,7 @@ a { color: inherit; }
 .pagina-novo-evento input, .pagina-novo-evento select, .pagina-novo-evento textarea { width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid #bcb4ae; border-radius: 3px; color: var(--ink); background: #fff; font: inherit; }
 .pagina-novo-evento textarea { min-height: 110px; resize: vertical; }
 .pagina-novo-evento input:focus, .pagina-novo-evento select:focus, .pagina-novo-evento textarea:focus { border-color: var(--accent); outline: 2px solid #a51f2b33; }
-.pagina-novo-evento .data-hora { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1.15fr) minmax(110px, 0.68fr); align-items: start; gap: 12px; }
+.pagina-novo-evento .data-hora { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1.15fr) minmax(110px, 0.68fr) minmax(110px, 0.68fr); align-items: start; gap: 12px; }
 .pagina-novo-evento .campo-horario input { padding-right: 7px; padding-left: 7px; }
 .pagina-novo-evento .arquivo-input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .pagina-novo-evento .arquivo-controles { min-width: 0; display: flex; align-items: center; gap: 12px; }
@@ -719,7 +719,7 @@ a { color: inherit; }
     .pagina-registo .formulario { padding: 22px 18px; }
     .pagina-perfil .config-opcao { align-items: flex-start; padding: 14px; }
     .pagina-novo-evento .data-hora { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 12px; }
-    .pagina-novo-evento .campo-horario { grid-column: 1 / -1; }
+    .pagina-novo-evento .campo-horario { grid-column: auto; }
     .pagina-novo-evento .campo-horario input { max-width: 180px; }
     .pagina-novo-evento .arquivo-controles { align-items: flex-start; flex-direction: column; }
     .pagina-novo-evento .acoes { flex-direction: column; }
@@ -885,9 +885,11 @@ a { color: inherit; }
     .pagina-detalhe-evento .detalhe-capa img { height: 230px; }
     .pagina-detalhe-evento .detalhe-acoes { align-items: stretch; flex-direction: column; }
     .pagina-detalhe-evento .detalhe-acoes form, .pagina-detalhe-evento .detalhe-acoes .button { width: 100%; }
-    .pagina-meus-eventos header { min-height: 60px; padding: 12px 5vw; gap: 12px; }
-    .pagina-meus-eventos header nav { gap: 12px; flex-wrap: wrap; justify-content: flex-end; }
-    .pagina-meus-eventos header .welcome { width: 100%; text-align: right; }
+    .pagina-meus-eventos header { min-height: 60px; padding: 12px 5vw; align-items: stretch; flex-direction: column; gap: 10px; }
+    .pagina-meus-eventos header .brand { white-space: nowrap; }
+    .pagina-meus-eventos header nav { width: 100%; gap: 10px; flex-wrap: nowrap; justify-content: space-between; }
+    .pagina-meus-eventos header .welcome { width: auto; margin-right: auto; text-align: left; }
+    .pagina-meus-eventos header nav .button { min-height: 38px; padding: 0 10px; white-space: nowrap; }
     .pagina-meus-eventos main { margin: 26px auto 44px; }
     .pagina-meus-eventos .meu-evento { align-items: flex-start; flex-direction: column; }
     .pagina-meus-eventos .qr-ingresso { align-self: center; }

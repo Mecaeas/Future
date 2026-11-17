@@ -75,6 +75,21 @@ class DemoApplicationTests {
 	}
 
 	@Test
+	void formularioDeEventoExibeHorarioFinalERestauracaoDeRascunho() throws Exception {
+		MockHttpSession sessao = new MockHttpSession();
+		sessao.setAttribute("usuarioEmail", "criador-formulario@example.com");
+
+		mockMvc.perform(get("/eventos/novo").session(sessao))
+				.andExpect(status().isOk())
+				.andExpect(content().string(containsString("name=\"horaFim\"")))
+				.andExpect(content().string(containsString("localStorage.setItem(chaveRascunhoEvento")));
+
+		mockMvc.perform(get("/mural").flashAttr("eventoCriado", true))
+				.andExpect(status().isOk())
+				.andExpect(content().string(containsString("localStorage.removeItem(\"mwkEventoNovoRascunho\")")));
+	}
+
+	@Test
 	@Transactional
 	void muralExibeVagasDoEvento() throws Exception {
 		eventos.save(new Evento(
@@ -164,17 +179,22 @@ class DemoApplicationTests {
 						.param("categoria", "Cultura")
 						.param("data", "2026-12-10")
 						.param("hora", "18:30")
+						.param("horaFim", "21:45")
 						.param("dataFim", "2026-12-12")
 						.param("informacaoOrganizador", "Organizado pela comunidade local."))
 				.andExpect(status().is3xxRedirection())
-				.andExpect(redirectedUrl("/mural"));
+				.andExpect(redirectedUrl("/mural"))
+				.andExpect(flash().attribute("eventoCriado", true));
 
 		Evento evento = eventos.findAll().stream()
 				.filter(item -> item.getNome().equals("Evento de vários dias"))
 				.findFirst()
 				.orElseThrow();
 		assertEquals(LocalDate.of(2026, 12, 12), evento.getDataFim());
-		assertEquals("10/12/2026 às 18:30 até 12/12/2026", evento.getDataHoraFormatada());
+		assertEquals(java.time.LocalTime.of(21, 45), evento.getHoraFim());
+		assertEquals("10/12/2026 às 18:30 até 12/12/2026 às 21:45", evento.getDataHoraFormatada());
+		assertEquals("10/12/2026 até 12/12/2026 das 18:30 às 21:45",
+				evento.getDataHoraMuralFormatada());
 		assertEquals("Organizado pela comunidade local.", evento.getInformacaoOrganizador());
 		assertNotNull(evento.getImagemCapa());
 		assertEquals(2, evento.getImagensGaleria().size());
@@ -186,6 +206,7 @@ class DemoApplicationTests {
 				.andExpect(content().string(containsString("Fotos do evento")))
 				.andExpect(content().string(containsString("Imagem 1 do evento Evento de vários dias")))
 				.andExpect(content().string(containsString("Imagem 2 do evento Evento de vários dias")))
+				.andExpect(content().string(containsString("data-src=\"/uploads/eventos/")))
 				.andExpect(content().string(containsString("aria-label=\"Próxima foto\"")))
 				.andExpect(content().string(containsString("1 de 2")))
 				.andExpect(content().string(containsString("Organizado pela comunidade local.")));
@@ -226,6 +247,59 @@ class DemoApplicationTests {
 		assertNull(evento.getDataFim());
 		assertEquals("10/12/2026 às 18:30", evento.getDataHoraFormatada());
 		arquivosEnviados.addAll(evento.getTodosCaminhosImagens());
+	}
+
+	@Test
+	@Transactional
+	void criarEventoPodeInformarHorarioFinalSemDataFinal() throws Exception {
+		MockHttpSession sessao = new MockHttpSession();
+		sessao.setAttribute("usuarioEmail", "criador-com-horario-final@example.com");
+
+		mockMvc.perform(multipart("/eventos")
+						.file(imagemValida("capa", "capa.png"))
+						.session(sessao)
+						.param("nome", "Evento com horário final")
+						.param("endereco", "Local de teste")
+						.param("categoria", "Cultura")
+						.param("data", "2026-12-10")
+						.param("hora", "18:30")
+						.param("horaFim", "21:45"))
+				.andExpect(status().is3xxRedirection())
+				.andExpect(redirectedUrl("/mural"));
+
+		Evento evento = eventos.findAll().stream()
+				.filter(item -> item.getNome().equals("Evento com horário final"))
+				.findFirst()
+				.orElseThrow();
+		assertNull(evento.getDataFim());
+		assertEquals(java.time.LocalTime.of(21, 45), evento.getHoraFim());
+		assertEquals("10/12/2026 às 18:30 até 21:45", evento.getDataHoraFormatada());
+		assertEquals("10/12/2026 das 18:30 às 21:45", evento.getDataHoraMuralFormatada());
+		arquivosEnviados.addAll(evento.getTodosCaminhosImagens());
+	}
+
+	@Test
+	@Transactional
+	void criarEventoRejeitaHorarioFinalAnteriorAoInicio() throws Exception {
+		MockHttpSession sessao = new MockHttpSession();
+		sessao.setAttribute("usuarioEmail", "criador-horario-invalido@example.com");
+
+		mockMvc.perform(multipart("/eventos")
+						.file(imagemValida("capa", "capa.png"))
+						.session(sessao)
+						.param("nome", "Evento com horário inválido")
+						.param("endereco", "Local de teste")
+						.param("categoria", "Cultura")
+						.param("data", "2026-12-10")
+						.param("hora", "18:30")
+						.param("horaFim", "17:30"))
+				.andExpect(status().is3xxRedirection())
+				.andExpect(redirectedUrl("/eventos/novo"))
+				.andExpect(flash().attribute("erroEvento",
+						"O término deve ser posterior ao início. Para eventos após a meia-noite, informe a data final."));
+
+		assertFalse(eventos.findAll().stream()
+				.anyMatch(item -> item.getNome().equals("Evento com horário inválido")));
 	}
 
 	@Test
@@ -371,13 +445,14 @@ class DemoApplicationTests {
 						.param("email", "empresa-cnpj-digitos@example.com")
 						.param("senha", "senha-segura-123")
 						.param("tipo", "PJ")
-						.param("cpf", "529.982.247-25")
-						.param("documento", "12345678000199"))
+						.param("cpf", "111.111.111-11")
+						.param("documento", "00000000000000"))
 				.andExpect(status().is3xxRedirection())
 				.andExpect(redirectedUrl("/login"));
 
 		PessoaJuridica empresaSemMascara = (PessoaJuridica) usuarios.findByEmail("empresa-cnpj-digitos@example.com");
-		assertEquals("12.345.678/0001-99", empresaSemMascara.getCnpj());
+		assertEquals("00.000.000/0000-00", empresaSemMascara.getCnpj());
+		assertEquals("111.111.111-11", empresaSemMascara.getCpf());
 	}
 
 	@Test
@@ -398,19 +473,19 @@ class DemoApplicationTests {
 
 	@Test
 	@Transactional
-	void cadastroDeCidadaoExigeEArmazenaCpfValido() throws Exception {
+	void cadastroDeCidadaoAceitaCpfFicticioComOnzeDigitos() throws Exception {
 		mockMvc.perform(post("/fazer-registo")
 						.param("nome", "Cidadão de teste")
 						.param("email", "cidadao-com-cpf@example.com")
 						.param("senha", "senha-segura-123")
 						.param("tipo", "Cidadao")
 						.param("documento", "1990-01-01")
-						.param("cpf", "52998224725"))
+						.param("cpf", "11111111111"))
 				.andExpect(status().is3xxRedirection())
 				.andExpect(redirectedUrl("/login"));
 
 		Usuario usuario = usuarios.findByEmail("cidadao-com-cpf@example.com");
-		assertEquals("529.982.247-25", usuario.getCpf());
+		assertEquals("111.111.111-11", usuario.getCpf());
 
 		mockMvc.perform(post("/fazer-registo")
 						.param("nome", "Cidadão sem CPF")
@@ -426,8 +501,10 @@ class DemoApplicationTests {
 	@Test
 	@Transactional
 	void usuarioConfirmaPresencaEEncontraIngressoQrEmMeusEventos() throws Exception {
-		Usuario usuario = usuarios.saveAndFlush(new Cidadao(
-				"Participante de teste", "participante-teste@example.com", "senha", LocalDate.of(1990, 1, 1)));
+		Usuario usuario = new Cidadao(
+				"Participante de teste", "participante-teste@example.com", "senha", LocalDate.of(1990, 1, 1));
+		usuario.setCpf("111.111.111-11");
+		usuario = usuarios.saveAndFlush(usuario);
 		Evento evento = eventos.saveAndFlush(new Evento(
 				"Evento para inscrição", "Local de teste", "Geral",
 				LocalDateTime.of(2026, 12, 2, 19, 0), "Descrição de teste",
@@ -477,14 +554,6 @@ class DemoApplicationTests {
 				.andReturn();
 		assertTrue(qrResponse.getResponse().getContentAsByteArray().length > 0);
 
-		mockMvc.perform(get("/ingressos/{token}/baixar", ingresso.getToken()).session(sessao))
-				.andExpect(status().isSeeOther())
-				.andExpect(header().string("Location", "/perfil"));
-
-		mockMvc.perform(post("/perfil/cpf").session(sessao).param("cpf", "529.982.247-25"))
-				.andExpect(status().is3xxRedirection())
-				.andExpect(redirectedUrl("/ingressos/" + ingresso.getToken() + "/baixar"));
-
 		MvcResult arquivoIngresso = mockMvc.perform(get("/ingressos/{token}/baixar", ingresso.getToken()).session(sessao))
 				.andExpect(status().isOk())
 				.andExpect(header().string("Content-Disposition", "attachment; filename=\"ingresso-mwk.pdf\""))
@@ -495,7 +564,7 @@ class DemoApplicationTests {
 		try (PDDocument documentoIngresso = Loader.loadPDF(pdfIngresso)) {
 			String textoIngresso = new PDFTextStripper().getText(documentoIngresso);
 			assertTrue(textoIngresso.contains("Participante de teste"));
-			assertTrue(textoIngresso.contains("529.982.247-25"));
+			assertTrue(textoIngresso.contains("111.111.111-11"));
 			assertTrue(textoIngresso.contains("Apresente este QR Code na entrada do evento."));
 			boolean qrEmbutido = false;
 			for (var nomeRecurso : documentoIngresso.getPage(0).getResources().getXObjectNames()) {
@@ -509,22 +578,43 @@ class DemoApplicationTests {
 	}
 
 	@Test
-	void usuarioPodeSalvarCpfNoPerfil() throws Exception {
+	void perfilNaoSolicitaCpfParaBaixarIngresso() throws Exception {
 		Usuario usuario = usuarios.saveAndFlush(new Cidadao(
 				"Pessoa do perfil", "cpf-perfil@example.com", "senha", LocalDate.of(1990, 1, 1)));
 		MockHttpSession sessao = new MockHttpSession();
 		sessao.setAttribute("usuarioEmail", usuario.getEmail());
 
-		mockMvc.perform(post("/perfil/cpf").session(sessao).param("cpf", "52998224725"))
-				.andExpect(status().is3xxRedirection())
-				.andExpect(redirectedUrl("/perfil"));
+		mockMvc.perform(get("/perfil").session(sessao))
+				.andExpect(status().isOk())
+				.andExpect(content().string(containsString("Configurações da conta")))
+				.andExpect(content().string(org.hamcrest.Matchers.not(containsString("CPF para ingressos"))))
+				.andExpect(content().string(org.hamcrest.Matchers.not(containsString("/perfil/cpf"))));
+	}
 
-		assertEquals("529.982.247-25", usuarios.findById(usuario.getId()).orElseThrow().getCpf());
+	@Test
+	@Transactional
+	void contaAntigaSemCpfPodeBaixarIngresso() throws Exception {
+		Usuario usuario = usuarios.saveAndFlush(new Cidadao(
+				"Conta antiga", "conta-antiga@example.com", "senha", LocalDate.of(1990, 1, 1)));
+		Evento evento = eventos.saveAndFlush(new Evento(
+				"Evento para conta antiga", "Local de teste", "Geral",
+				LocalDateTime.of(2026, 12, 2, 19, 0), "Descrição",
+				"criador-antigo@example.com"));
+		Ingresso ingresso = ingressos.saveAndFlush(new Ingresso(evento, usuario));
+		MockHttpSession sessao = new MockHttpSession();
+		sessao.setAttribute("usuarioLogado", usuario);
 
-		mockMvc.perform(post("/perfil/cpf").session(sessao).param("cpf", "11111111111"))
-				.andExpect(status().is3xxRedirection())
-				.andExpect(redirectedUrl("/perfil"));
-		assertEquals("529.982.247-25", usuarios.findById(usuario.getId()).orElseThrow().getCpf());
+		MvcResult arquivo = mockMvc.perform(get("/ingressos/{token}/baixar", ingresso.getToken()).session(sessao))
+				.andExpect(status().isOk())
+				.andExpect(header().string("Content-Disposition", "attachment; filename=\"ingresso-mwk.pdf\""))
+				.andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PDF))
+				.andReturn();
+
+		try (PDDocument documentoIngresso = Loader.loadPDF(arquivo.getResponse().getContentAsByteArray())) {
+			String texto = new PDFTextStripper().getText(documentoIngresso);
+			assertTrue(texto.contains("Conta antiga"));
+			assertTrue(texto.contains("Não informado"));
+		}
 	}
 
 	@Test

@@ -119,6 +119,9 @@
         <p id="semResultados" class="sem-resultados" hidden>Nenhum evento corresponde à busca.</p>
     </main>
     <div th:replace="~{fragments/rodape :: atendimento}"></div>
+    <script th:if="${eventoCriado}">
+        localStorage.removeItem("mwkEventoNovoRascunho");
+    </script>
     <script th:if="${sucessoInscricao != null}">
         const modalConfirmacao = document.getElementById("confirmacaoInscricao");
         modalConfirmacao.showModal();

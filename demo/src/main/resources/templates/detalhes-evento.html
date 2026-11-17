@@ -48,7 +48,7 @@
                          aria-label="Galeria de fotos do evento">
                         <div class="galeria-slide" th:each="imagem, status : ${evento.imagensGaleria}"
                              th:attr="hidden=${!status.first}">
-                            <img th:src="${imagem}" th:alt="|Imagem ${status.count} do evento ${evento.nome}|">
+                            <img th:attr="data-src=${imagem}" th:alt="|Imagem ${status.count} do evento ${evento.nome}|">
                         </div>
                         <button class="galeria-seta galeria-anterior" type="button" data-galeria-anterior
                                 aria-label="Foto anterior" th:if="${#lists.size(evento.imagensGaleria) > 1}">‹</button>
@@ -111,14 +111,34 @@
             const contador = galeria.querySelector("[data-galeria-contador]");
             let fotoAtual = 0;
 
+            fotos.forEach((foto) => {
+                const imagem = foto.querySelector("img");
+                imagem.addEventListener("error", () => {
+                    if (imagem.dataset.retrying) return;
+                    imagem.dataset.retrying = "true";
+                    window.setTimeout(() => {
+                        imagem.src = `${imagem.dataset.src}?mwkRetry=${Date.now()}`;
+                    }, 500);
+                });
+            });
+
+            const carregarFoto = (indice) => {
+                const imagem = fotos[indice].querySelector("img");
+                if (!imagem.getAttribute("src")) {
+                    imagem.src = imagem.dataset.src;
+                }
+            };
+
             const mostrarFoto = (indice) => {
                 fotoAtual = (indice + fotos.length) % fotos.length;
+                carregarFoto(fotoAtual);
                 fotos.forEach((foto, posicao) => {
                     foto.hidden = posicao !== fotoAtual;
                 });
                 contador.textContent = `${fotoAtual + 1} de ${fotos.length}`;
             };
 
+            carregarFoto(fotoAtual);
             const anterior = galeria.querySelector("[data-galeria-anterior]");
             const proxima = galeria.querySelector("[data-galeria-proxima]");
             if (anterior) anterior.addEventListener("click", () => {

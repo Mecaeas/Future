@@ -145,14 +145,6 @@ public class EventoController {
         if (ingresso == null) {
             return ResponseEntity.notFound().build();
         }
-        if (usuario.getCpf() == null || usuario.getCpf().isBlank()) {
-            session.setAttribute("erroCpf", "Cadastre seu CPF para baixar o ingresso.");
-            session.setAttribute("ingressoPendenteCpf", ingresso.getToken());
-            return ResponseEntity.status(303)
-                    .header(HttpHeaders.LOCATION, "/perfil")
-                    .build();
-        }
-
         byte[] pdf = gerarPdfIngresso(ingresso, usuario);
 
         return ResponseEntity.ok()
@@ -199,7 +191,9 @@ public class EventoController {
                 y = escreverCampoPdf(conteudo, fonteNormal, fonteNegrito,
                         "Participante", usuario.getNome(), margem, y, larguraTexto);
                 y = escreverCampoPdf(conteudo, fonteNormal, fonteNegrito,
-                        "CPF", usuario.getCpf(), margem, y, larguraTexto);
+                        "CPF", usuario.getCpf() == null || usuario.getCpf().isBlank()
+                                ? "Não informado" : usuario.getCpf(),
+                        margem, y, larguraTexto);
                 y = escreverCampoPdf(conteudo, fonteNormal, fonteNegrito,
                         "Data e horário", ingresso.getEvento().getDataHoraFormatada(),
                         margem, y, larguraTexto);
@@ -335,6 +329,7 @@ public class EventoController {
             @RequestParam("data") String data,
             @RequestParam("hora") String hora,
             @RequestParam(value = "dataFim", required = false) String dataFim,
+            @RequestParam(value = "horaFim", required = false) String horaFim,
             @RequestParam(value = "descricao", required = false) String descricao,
             @RequestParam(value = "limiteParticipantes", required = false) Integer limiteParticipantes,
             @RequestParam(value = "pago", defaultValue = "false") boolean pago,
@@ -364,11 +359,13 @@ public class EventoController {
 
         LocalDateTime dataHora;
         LocalDate dataFinal;
+        LocalTime horarioFinal;
         try {
             LocalDate dataInicial = LocalDate.parse(data.trim());
             dataHora = dataInicial.atTime(LocalTime.parse(hora.trim()));
             dataFinal = parseDataFinal(dataFim);
-            validarPeriodo(dataInicial, dataFinal);
+            horarioFinal = parseHoraFinal(horaFim);
+            validarPeriodo(dataHora, dataFinal, horarioFinal);
         } catch (DateTimeParseException erro) {
             redirectAttributes.addFlashAttribute("erroEvento", "Selecione datas e horário válidos para o evento.");
             return "redirect:/eventos/novo";
@@ -387,10 +384,12 @@ public class EventoController {
 
         Evento evento = new Evento(nome, endereco, categoria, dataHora, descricao, email.toString(),
                 limiteParticipantes, dataFinal, pago, valor);
+        evento.definirHoraFim(horarioFinal);
         evento.definirImagemCapa(fotos.capa());
         fotos.galeria().forEach(evento::adicionarImagem);
         evento.definirInformacaoOrganizador(informacaoOrganizador);
         eventos.save(evento);
+        redirectAttributes.addFlashAttribute("eventoCriado", true);
         return "redirect:/mural";
     }
 
@@ -421,6 +420,7 @@ public class EventoController {
             @RequestParam("data") String data,
             @RequestParam("hora") String hora,
             @RequestParam(value = "dataFim", required = false) String dataFim,
+            @RequestParam(value = "horaFim", required = false) String horaFim,
             @RequestParam(value = "descricao", required = false) String descricao,
             @RequestParam(value = "limiteParticipantes", required = false) Integer limiteParticipantes,
             @RequestParam(value = "pago", defaultValue = "false") boolean pago,
@@ -464,11 +464,13 @@ public class EventoController {
 
         LocalDateTime dataHora;
         LocalDate dataFinal;
+        LocalTime horarioFinal;
         try {
             LocalDate dataInicial = LocalDate.parse(data.trim());
             dataHora = dataInicial.atTime(LocalTime.parse(hora.trim()));
             dataFinal = parseDataFinal(dataFim);
-            validarPeriodo(dataInicial, dataFinal);
+            horarioFinal = parseHoraFinal(horaFim);
+            validarPeriodo(dataHora, dataFinal, horarioFinal);
         } catch (DateTimeParseException erro) {
             mensagens.addFlashAttribute("erroEvento", "Selecione datas e horário válidos para o evento.");
             return "redirect:/eventos/" + id + "/editar";
@@ -504,7 +506,7 @@ public class EventoController {
             return "redirect:/eventos/" + id + "/editar";
         }
 
-        evento.atualizar(nome, endereco, categoria, dataHora, dataFinal, descricao,
+        evento.atualizar(nome, endereco, categoria, dataHora, dataFinal, horarioFinal, descricao,
                 limiteParticipantes, pago, valor, informacaoOrganizador);
         eventos.save(evento);
         List<String> caminhosNovos = evento.getTodosCaminhosImagens();
@@ -523,9 +525,21 @@ public class EventoController {
         return dataFim == null || dataFim.isBlank() ? null : LocalDate.parse(dataFim.trim());
     }
 
-    private void validarPeriodo(LocalDate dataInicial, LocalDate dataFinal) {
+    private LocalTime parseHoraFinal(String horaFim) {
+        return horaFim == null || horaFim.isBlank() ? null : LocalTime.parse(horaFim.trim());
+    }
+
+    private void validarPeriodo(LocalDateTime dataHoraInicial, LocalDate dataFinal, LocalTime horaFim) {
+        LocalDate dataInicial = dataHoraInicial.toLocalDate();
         if (dataFinal != null && dataFinal.isBefore(dataInicial)) {
             throw new IllegalArgumentException("A data final não pode ser anterior à data inicial.");
+        }
+        if (horaFim != null) {
+            LocalDate dataTermino = dataFinal == null ? dataInicial : dataFinal;
+            if (!dataTermino.atTime(horaFim).isAfter(dataHoraInicial)) {
+                throw new IllegalArgumentException(
+                        "O término deve ser posterior ao início. Para eventos após a meia-noite, informe a data final.");
+            }
         }
     }
 

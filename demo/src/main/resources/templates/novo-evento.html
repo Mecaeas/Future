@@ -18,7 +18,7 @@
             <p class="intro">Informe os dados para publicar no mural.</p>
             <p class="erro" th:if="${erroEvento != null}" th:text="${erroEvento}" role="alert"></p>
 
-            <form action="/eventos" method="post" enctype="multipart/form-data">
+            <form id="formNovoEvento" action="/eventos" method="post" enctype="multipart/form-data">
                 <div class="campo">
                     <label for="nome">Nome do evento</label>
                     <input id="nome" name="nome" type="text" maxlength="160" required>
@@ -79,8 +79,12 @@
                         <p id="ajudaDataFim" class="ajuda">Preencha apenas se o evento durar mais de um dia.</p>
                     </div>
                     <div class="campo campo-horario">
-                        <label for="hora">Horário</label>
+                        <label for="hora">Horário de início</label>
                         <input id="hora" name="hora" type="time" required>
+                    </div>
+                    <div class="campo campo-horario">
+                        <label for="horaFim">Horário de término (opcional)</label>
+                        <input id="horaFim" name="horaFim" type="time">
                     </div>
                 </div>
 
@@ -118,7 +122,7 @@
 
                 <div class="acoes">
                     <button class="button" type="submit">Publicar evento</button>
-                    <a class="button secondary" href="/mural">Cancelar</a>
+                    <a id="cancelarNovoEvento" class="button secondary" href="/mural">Cancelar</a>
                 </div>
             </form>
         </section>
@@ -127,10 +131,11 @@
     <script>
         const eventoPago = document.getElementById("pago");
         const valorIngresso = document.getElementById("valorIngresso");
-        eventoPago.addEventListener("change", () => {
+        function atualizarCampoValorIngresso() {
             valorIngresso.disabled = !eventoPago.checked;
             valorIngresso.required = eventoPago.checked;
-        });
+        }
+        eventoPago.addEventListener("change", atualizarCampoValorIngresso);
 
         const dataInicial = document.getElementById("data");
         const dataFinal = document.getElementById("dataFim");
@@ -141,6 +146,51 @@
             }
         });
 
+        const formNovoEvento = document.getElementById("formNovoEvento");
+        const chaveRascunhoEvento = "mwkEventoNovoRascunho";
+        const camposRascunho = Array.from(formNovoEvento.elements)
+            .filter(campo => campo.name && campo.type !== "file" && campo.type !== "submit");
+
+        function salvarRascunhoEvento() {
+            const rascunho = {};
+            camposRascunho.forEach(campo => {
+                rascunho[campo.name] = campo.type === "checkbox" ? campo.checked : campo.value;
+            });
+            localStorage.setItem(chaveRascunhoEvento, JSON.stringify(rascunho));
+        }
+
+        function restaurarRascunhoEvento() {
+            const salvo = localStorage.getItem(chaveRascunhoEvento);
+            if (!salvo) return;
+
+            let rascunho;
+            try {
+                rascunho = JSON.parse(salvo);
+            } catch (erro) {
+                console.error("Não foi possível restaurar o rascunho do evento.", erro);
+                localStorage.removeItem(chaveRascunhoEvento);
+                return;
+            }
+
+            camposRascunho.forEach(campo => {
+                const valor = rascunho[campo.name];
+                if (campo.type === "checkbox" && typeof valor === "boolean") {
+                    campo.checked = valor;
+                } else if (campo.type !== "checkbox" && typeof valor === "string") {
+                    campo.value = valor;
+                }
+            });
+            atualizarCampoValorIngresso();
+            dataFinal.min = dataInicial.value;
+        }
+
+        restaurarRascunhoEvento();
+        formNovoEvento.addEventListener("input", salvarRascunhoEvento);
+        formNovoEvento.addEventListener("change", salvarRascunhoEvento);
+        formNovoEvento.addEventListener("submit", salvarRascunhoEvento);
+        document.getElementById("cancelarNovoEvento").addEventListener("click", () => {
+            localStorage.removeItem(chaveRascunhoEvento);
+        });
     </script>
     <script src="/evento-imagens.js"></script>
 </body>
